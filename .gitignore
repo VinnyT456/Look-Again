@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.DS_Store
+.python-version
+
+# Virtual environments
+.venv/
+
+# Local datasets and generated face crops
+/data/
+/DF40/
+/DF40_face_crops/
+/DF40_face_crops_unpaired/
+/DF40_face_swap_crops/
+/.DF40_face_*/
+
+# Generated caches, checkpoints, and experiment outputs
+/cache/
+/checkpoints/
+/results/
+/Mix/
