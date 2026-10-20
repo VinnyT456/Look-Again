@@ -6,21 +6,33 @@ dist/
 wheels/
 *.egg-info
 .DS_Store
-.python-version
 
-# Virtual environments
+# Virtual environments (create under ml/: cd ml && uv sync)
 .venv/
+ml/.venv/
 
-# Local datasets and generated face crops
-/data/
-/DF40/
-/DF40_face_crops/
-/DF40_face_crops_unpaired/
-/DF40_face_swap_crops/
-/.DF40_face_*/
+# Local datasets and generated face crops (under ml/)
+/ml/data/
+/ml/DF40/
+/ml/DF40_face_crops/
+/ml/DF40_face_crops_unpaired/
+/ml/DF40_face_swap_crops/
+/ml/.DF40_face_*/
 
 # Generated caches, checkpoints, and experiment outputs
+/ml/cache/
+/ml/checkpoints/
+/ml/results/
+/ml/Mix/
+
+# Legacy root paths (if anything was left behind after reorganizing)
+/data/
 /cache/
 /checkpoints/
 /results/
 /Mix/
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
