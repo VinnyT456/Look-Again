@@ -1,0 +1,13 @@
+/*
+ * The web app's tokens and base layer, so the extension is the same
+ * condition-report world. Schibsted Grotesk is bundled rather than fetched.
+ */
+@import "../src/app/globals.css";
+
+@source "../src/components";
+@source "./entrypoints";
+@source "./lib";
+
+:root {
+  --font-grotesk: "Schibsted Grotesk Variable";
+}

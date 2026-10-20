@@ -1,0 +1,21 @@
+import Foundation
+
+/// WildcatVerify's identity as an AT Protocol OAuth client.
+///
+/// The client ID is the public address of `oauth-client-metadata.json`
+/// (served by GitHub Pages from the repository's `docs/` folder). The
+/// redirect scheme is that host reversed, as the AT Protocol requires for
+/// native apps.
+enum BlueskyOAuthConfig {
+    static let clientID = "https://vinnyt456.github.io/Look-Again/oauth-client-metadata.json"
+    static let callbackScheme = "io.github.vinnyt456"
+    static let redirectURI = "\(callbackScheme):/oauth/callback"
+    /// Broad scope, because Bluesky's servers don't list read-only scopes yet.
+    /// WildcatVerify only ever calls `app.bsky.feed.getTimeline`.
+    static let scope = "atproto transition:generic"
+    /// Bluesky's sign-in server for accounts hosted by Bluesky (most people).
+    static let entryway = URL(string: "https://bsky.social")!
+    /// Asks the user's server to forward timeline reads to Bluesky's AppView.
+    static let appViewProxy = "did:web:api.bsky.app#bsky_appview"
+    static let timelinePageSize = 30
+}

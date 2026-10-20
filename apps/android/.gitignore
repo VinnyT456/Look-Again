@@ -1,0 +1,11 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+# The detector is ~84 MB; copied from ml/checkpoints/tflite by scripts/copy_model.sh.
+app/src/main/assets/*.tflite

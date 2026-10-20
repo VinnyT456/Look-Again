@@ -1,0 +1,44 @@
+{
+  "model_id": "buildborderless/CommunityForensics-DeepfakeDet-ViT",
+  "input_name": "pixel_values",
+  "input_shape": [
+    1,
+    3,
+    384,
+    384
+  ],
+  "input_dtype": "float32",
+  "output_name": [
+    "fake_prob",
+    "patch_map"
+  ],
+  "output_description": "Probability image is fake (class 1)",
+  "preprocessing": {
+    "note": "Apply ViTImageProcessor from the same MODEL_ID before Core ML inference.",
+    "do_resize": true,
+    "do_center_crop": true,
+    "size": "SizeDict(height=None, width=None, longest_edge=None, shortest_edge=440, max_height=None, max_width=None, min_pixels=None, max_pixels=None)",
+    "crop_size": "SizeDict(height=384, width=384, longest_edge=None, shortest_edge=None, max_height=None, max_width=None, min_pixels=None, max_pixels=None)",
+    "resample": 3
+  },
+  "probe": {
+    "type": "rich_linear",
+    "feature_dim": 1538,
+    "logistic_C": 0.01,
+    "tta_horizontal_flip": true
+  },
+  "training": {
+    "probe_pipeline": "StandardScaler + LogisticRegression(C=0.01)",
+    "project_root": "/Users/vincent/Look Again/ml"
+  },
+  "patch_map": {
+    "shape": [
+      1,
+      24,
+      24
+    ],
+    "units": "logit contribution; positive pushes toward fake",
+    "covers": "the 384x384 center crop (short edge resized to 440)",
+    "excludes": "global CLS terms and the spatially uniform patch_mean\u00b7weight term"
+  }
+}

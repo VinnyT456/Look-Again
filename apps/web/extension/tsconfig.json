@@ -1,0 +1,16 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    // Matches the web app's tsconfig, since the extension compiles its components too.
+    "noUncheckedIndexedAccess": false,
+    "paths": {
+      "@/*": ["../src/*"]
+    }
+  },
+  "include": [".wxt/wxt.d.ts", "**/*.ts", "**/*.tsx", "../src/**/*.d.ts"],
+  "exclude": [".output", "node_modules"]
+}
