@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WildcatVerify web and browser extension
 
-## Getting Started
+The web version of WildcatVerify: check whether a photo on Bluesky is likely
+real or AI-generated, see where the detector looked, and practise spotting
+fakes. A browser extension in [`extension/`](extension/) checks photos and
+posts right where you find them, using the same components.
 
-First, run the development server:
+Product and design records live at the repo root: [`PRODUCT.md`](../../PRODUCT.md)
+and [`DESIGN.md`](../../DESIGN.md).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Layout
+
+```text
+apps/web/
+├── src/app/            # Next.js routes: Check (/), Feed, My Checks, Learn, Settings, API
+├── src/components/     # Screens and the shared condition-report UI (also used by the extension)
+├── src/lib/            # Models, Bluesky client, check pipeline, client store
+└── extension/          # WXT browser extension (side panel, options, background)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run the web app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open http://localhost:3000. Checks go to the detector service in `ml/`
+(`DETECTOR_URL`, default `http://127.0.0.1:8765`):
 
-## Learn More
+```bash
+cd ../../ml
+uv sync --extra serve
+uv run uvicorn look_again.serve.app:app --host 127.0.0.1 --port 8765
+```
 
-To learn more about Next.js, take a look at the following resources:
+When the detector isn't running, results come from a demo classifier and are
+always labelled **Demo result**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Browser extension
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The extension mirrors the phone share sheet:
 
-## Deploy on Vercel
+- **Right-click a photo on Bluesky** → *Check photo with WildcatVerify*, or
+  right-click a post link → *Check post with WildcatVerify*. The side panel
+  opens with the result.
+- **Toolbar button** opens the panel, which offers *Check this post* for the
+  Bluesky post on the current tab, a link field, and drop/paste/choose a photo.
+- **Done** discards the result. **Open in My Checks** hands it to the web app
+  (`/checks#import=…`), which keeps it only if Keep My Checks is on there.
+- **Options** set the WildcatVerify server (default `http://localhost:3000`).
+  Any other server asks for permission to reach it first.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The extension talks to the web app's API, so keep `npm run dev` (or a deployed
+web app) running.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run ext:dev            # Chrome with hot reload
+npm run ext:build          # extension/.output/chrome-mv3
+npm run ext:build:firefox  # extension/.output/firefox-mv3
+npm run ext:zip            # store-ready zip
+npm run ext:typecheck
+```
+
+To load a build by hand in Chrome: `chrome://extensions` → Developer mode →
+**Load unpacked** → `extension/.output/chrome-mv3`. In Firefox:
+`about:debugging` → This Firefox → **Load Temporary Add-on** → the
+`manifest.json` in `extension/.output/firefox-mv3`.
+
+Permissions: `contextMenus`, `storage`, `sidePanel` (Chrome), plus host access
+to `bsky.app` (to see which post is open) and localhost (the default server).
+
+Shared code: the extension imports `@/…` from `src/` (see
+`extension/wxt.config.ts`); `next/link` is swapped for a plain anchor there.
+Toolbar icons are rendered from the specimen glyph with `npm run ext:icons`.
+
+## Checks
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+See [PRIVACY.md](PRIVACY.md) for what is sent where.

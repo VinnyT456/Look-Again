@@ -1,11 +1,14 @@
 package edu.northwestern.lookagain.wildcatverify.share
 
+import android.app.Application
+import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +32,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.IntentCompat
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import edu.northwestern.lookagain.wildcatverify.container
 import edu.northwestern.lookagain.wildcatverify.data.BlueskyService
 import edu.northwestern.lookagain.wildcatverify.model.CheckException
@@ -43,6 +48,7 @@ import edu.northwestern.lookagain.wildcatverify.ui.theme.colors
 import edu.northwestern.lookagain.wildcatverify.viewmodel.ShareInput
 import edu.northwestern.lookagain.wildcatverify.viewmodel.ShareViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -52,40 +58,66 @@ import kotlinx.coroutines.withContext
  * everything; nothing is written to disk or added to My Checks.
  */
 class ShareActivity : ComponentActivity() {
+    /** Survives rotation, so turning the phone doesn't check the item again. */
+    private val check: ShareCheck by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val container = container
-        val viewModel = ShareViewModel(container.pipeline())
+        // Read through the application's resolver: the read can outlive this activity across a rotation.
+        val resolver = applicationContext.contentResolver
         val shared = intent
+        check.start { readInput(shared, resolver) }
         setContent {
             WildcatTheme {
                 CompositionLocalProvider(
                     LocalImages provides container.images,
                     LocalHeatmapEnabled provides container.settings.heatmapEnabled,
                 ) {
-                    ShareRoot(viewModel, onDone = ::finish)
+                    ShareRoot(check.share, onDone = ::finish)
                 }
             }
-            LaunchedEffect(Unit) {
-                val input = readInput(shared)
-                if (input == null) viewModel.fail(CheckException.Unsupported) else viewModel.check(input)
-            }
+        }
+    }
+}
+
+/**
+ * Holds one share's check across rotation. When the screen closes for good it
+ * drops the shared photo from memory, as the iOS extension does on Done. Only
+ * this check's photo: the app shares the process, and My Checks may hold others.
+ */
+class ShareCheck(application: Application) : AndroidViewModel(application) {
+    private val images = application.container.images
+    val share = ShareViewModel(application.container.pipeline())
+    private var started = false
+
+    /** Runs once per share; later calls (after a rotation) keep the check already running. */
+    fun start(read: suspend () -> ShareInput?) {
+        if (started) return
+        started = true
+        viewModelScope.launch {
+            val input = read()
+            if (input == null) share.fail(CheckException.Unsupported) else share.check(input)
         }
     }
 
-    /** Picks the best thing to check: an image first, then a Bluesky link in the shared text. */
-    private suspend fun readInput(intent: Intent): ShareInput? {
-        if (intent.action != Intent.ACTION_SEND) return null
-        IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
-            val data = withContext(Dispatchers.IO) {
-                runCatching { contentResolver.openInputStream(uri)?.use { it.readBytes() } }.getOrNull()
-            }
-            if (data != null) return ShareInput.Image(data)
-        }
-        val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString() ?: return null
-        return BlueskyService.linkIn(text)?.let { ShareInput.Link(it) }
+    override fun onCleared() {
+        share.uploadUrl?.let(images::removeUpload)
     }
+}
+
+/** Picks the best thing to check: an image first, then a Bluesky link in the shared text. */
+private suspend fun readInput(intent: Intent, resolver: ContentResolver): ShareInput? {
+    if (intent.action != Intent.ACTION_SEND) return null
+    IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
+        val data = withContext(Dispatchers.IO) {
+            runCatching { resolver.openInputStream(uri)?.use { it.readBytes() } }.getOrNull()
+        }
+        if (data != null) return ShareInput.Image(data)
+    }
+    val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString() ?: return null
+    return BlueskyService.linkIn(text)?.let { ShareInput.Link(it) }
 }
 
 /** The share screen's content: progress, the verdict, or why it couldn't check. */

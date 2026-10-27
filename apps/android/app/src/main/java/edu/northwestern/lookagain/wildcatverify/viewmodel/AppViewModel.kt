@@ -10,6 +10,7 @@ import edu.northwestern.lookagain.wildcatverify.data.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Tab order puts Check in the middle of five. */
@@ -109,6 +110,23 @@ class AppViewModel(private val container: AppContainer) {
         isShowingAbout = true
     }
 
+    /**
+     * Sign in with Bluesky's own page in a browser tab, then open the Feed on
+     * the user's timeline. `handle` is only for accounts hosted elsewhere.
+     * Runs in the app's scope so leaving the screen doesn't cancel it.
+     */
+    fun signIn(handle: String? = null) {
+        scope.launch {
+            account.signIn(handle, container.browserSignIn::open)
+            if (account.isSignedIn) feed.showFollowing()
+        }
+    }
+
+    fun signOut() {
+        account.signOut()
+        feed.forgetFollowing()
+    }
+
     /** Settings → Keep My Checks. */
     fun setKeepHistory(isOn: Boolean) {
         settings.keepHistory = isOn
@@ -121,7 +139,7 @@ class AppViewModel(private val container: AppContainer) {
         history.setPersistence(null)
         persistence.erase()
         settings.reset()
-        feed.signOut()
+        signOut()
         historyList.path = emptyList()
     }
 }

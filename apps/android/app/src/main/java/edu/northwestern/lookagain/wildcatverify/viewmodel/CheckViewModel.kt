@@ -39,6 +39,9 @@ class CheckViewModel(
     /** Bumped with each finished check, for screen-reader announcements. */
     var lastResult by mutableStateOf<VerificationCase?>(null)
         private set
+    /** "Checking image" for screen readers when a check starts; cleared once spoken. */
+    var startAnnouncement by mutableStateOf<String?>(null)
+        private set
 
     /** A link was copied since the app last offered one: show "Check the link you copied". */
     var offersCopiedLink by mutableStateOf(false)
@@ -125,11 +128,16 @@ class CheckViewModel(
         path = path.dropLast(1)
     }
 
+    fun startAnnounced() {
+        startAnnouncement = null
+    }
+
     private fun run(work: suspend () -> VerificationCase) {
         job?.cancel()
         isShowingError = false
         analyzingImage = null
         phase = Phase.ANALYZING
+        startAnnouncement = "Checking image"
 
         job = scope.launch {
             try {

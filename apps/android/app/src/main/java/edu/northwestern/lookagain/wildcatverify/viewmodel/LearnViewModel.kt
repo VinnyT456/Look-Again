@@ -1,5 +1,6 @@
 package edu.northwestern.lookagain.wildcatverify.viewmodel
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,23 @@ class LearnViewModel(
     var lastRoundWasNewBest by mutableStateOf(false)
         private set
 
+    /**
+     * The Learn home's scroll position. Kept here because the home leaves
+     * composition while the Clue Guide is pushed or another tab shows.
+     */
+    val scroll = ScrollState(0)
+    /** The last answer the home reacted to, so coming back doesn't buzz or scroll again. */
+    var handledAnswerCount = 0
+    /** The round and post the home last scrolled to the top for. */
+    var shownPosition: Pair<Int, Int>? = null
+
+    /** "What the answers mean" is open. Closed again for each new round. */
+    var showsDefinitions by mutableStateOf(false)
+    /** The end-of-round list shows every miss, not just the first few. */
+    var showsAllMisses by mutableStateOf(false)
+    /** The missed case open in the review sheet, with what the user picked. */
+    var reviewing by mutableStateOf<Pair<PracticeQuestion, PracticeAnswer>?>(null)
+
     init {
         practice.onFinish = ::recordScore
     }
@@ -42,7 +60,12 @@ class LearnViewModel(
         get() = (settings?.bestPracticeScore ?: sessionBest).takeIf { it > 0 }
 
     /** Starts a fresh round in place. */
-    fun startPractice() = practice.restart()
+    fun startPractice() {
+        showsDefinitions = false
+        showsAllMisses = false
+        reviewing = null
+        practice.restart()
+    }
 
     fun openGuide(group: ClueGroup) {
         path = path + LearnRoute.ClueGuide(group.id)
@@ -93,6 +116,9 @@ class PracticeViewModel(private val bank: List<PracticeQuestion>, private val sh
         private set
     /** What the user picked for each answered question, in round order. */
     var picks by mutableStateOf<List<PracticeAnswer>>(emptyList())
+        private set
+    /** Bumped on each new round, so views can tell a restart from the first post. */
+    var roundNumber by mutableIntStateOf(0)
         private set
     /** Called once with the score when a round finishes. */
     var onFinish: ((Int) -> Unit)? = null
@@ -173,6 +199,7 @@ class PracticeViewModel(private val bank: List<PracticeQuestion>, private val sh
     fun restart() {
         round = draw(bank, lastRoundIds, shuffle)
         lastRoundIds = round.map { it.id }.toSet()
+        roundNumber += 1
         index = 0
         score = 0
         picks = emptyList()

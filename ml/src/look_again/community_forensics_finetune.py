@@ -42,7 +42,10 @@ class BackboneFinetuneConfig:
     epochs: int = 5
     learning_rate: float = 1e-5
     weight_decay: float = 0.01
+    """When true, only ``model.classifier`` trains unless ``unfreeze_encoder_layers`` > 0."""
     train_classifier_only: bool = True
+    """Unfreeze the last N ViT encoder blocks (plus classifier). Ignored when ``train_classifier_only`` is false."""
+    unfreeze_encoder_layers: int = 0
 
 
 @dataclass
@@ -116,7 +119,13 @@ def load_binary_image_dataset(
     for label_name, label in ((fake_dir, 1), (real_dir, 0)):
         folder = root / label_name
         if not folder.is_dir():
-            raise FileNotFoundError(f"Expected class folder: {folder}")
+            hint = ""
+            if "so_fake_materialized" in folder.as_posix():
+                hint = (
+                    "\nExport So-Fake first (from ml/):\n"
+                    "  uv run python -m scripts.train.community_forensics_vit_materialize_sofake\n"
+                )
+            raise FileNotFoundError(f"Expected class folder: {folder}{hint}")
         paths = list_images(folder)
         for path in tqdm(
             paths,
@@ -451,6 +460,42 @@ class _LabeledImageDataset(Dataset):
         return pixel_values, torch.tensor(label, dtype=torch.float32)
 
 
+def configure_vit_trainable(
+    model: ViTForImageClassification,
+    backbone: BackboneFinetuneConfig,
+) -> list[str]:
+    """Freeze/unfreeze ViT blocks for backbone fine-tune. Returns param-group labels for logging."""
+    for param in model.parameters():
+        param.requires_grad = False
+
+    labels: list[str] = []
+    vit = model.vit
+    if hasattr(vit, "layers"):
+        layers = vit.layers
+    elif hasattr(vit, "encoder") and hasattr(vit.encoder, "layer"):
+        layers = vit.encoder.layer
+    else:
+        raise AttributeError("Unsupported ViT layout: expected vit.layers or vit.encoder.layer")
+    n_layers = len(layers)
+    unfreeze_n = max(0, int(backbone.unfreeze_encoder_layers))
+
+    if not backbone.train_classifier_only:
+        for param in model.vit.parameters():
+            param.requires_grad = True
+        labels.append("vit_full")
+    elif unfreeze_n > 0:
+        start = max(0, n_layers - unfreeze_n)
+        for layer in layers[start:]:
+            for param in layer.parameters():
+                param.requires_grad = True
+        labels.append(f"vit_encoder_last_{unfreeze_n}")
+
+    for param in model.classifier.parameters():
+        param.requires_grad = True
+    labels.append("classifier")
+    return labels
+
+
 def finetune_backbone(
     train_samples: list[tuple[Path, int]],
     val_samples: list[tuple[Path, int]],
@@ -458,14 +503,8 @@ def finetune_backbone(
     device: torch.device,
 ) -> Path:
     model, processor = load_community_forensics_vit(device)
-    if config.backbone.train_classifier_only:
-        for param in model.vit.parameters():
-            param.requires_grad = False
-    else:
-        for param in model.parameters():
-            param.requires_grad = True
-    for param in model.classifier.parameters():
-        param.requires_grad = True
+    trainable = configure_vit_trainable(model, config.backbone)
+    tqdm.write(f"backbone trainable: {', '.join(trainable)}", file=sys.stderr)
 
     train_loader = DataLoader(
         _LabeledImageDataset(train_samples, processor),
@@ -575,7 +614,12 @@ def run_finetune(config: FinetuneConfig) -> dict[str, Any]:
         model, processor = load_community_forensics_vit(device)
         if backbone_ckpt is not None and backbone_ckpt.is_file():
             state = torch.load(backbone_ckpt, map_location=device, weights_only=True)
-            model.load_state_dict(state["model_state_dict"])
+            missing, unexpected = model.load_state_dict(state["model_state_dict"], strict=False)
+            if missing or unexpected:
+                tqdm.write(
+                    f"backbone checkpoint load: missing={len(missing)} unexpected={len(unexpected)}",
+                    file=sys.stderr,
+                )
         model.eval()
 
         cache_path = config.feature_cache_path()

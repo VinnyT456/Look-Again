@@ -21,9 +21,31 @@ SO_FAKE_HF_ID = "saberzl/So-Fake-Set"
 SO_FAKE_FAKE_LABELS = frozenset({"fake", "full_synthetic", "tampered", 1, "1"})
 SO_FAKE_REAL_LABELS = frozenset({"real", 0, "0"})
 
+# Ternary So-Fake: 0=real, 1=full_synthetic (gen-AI), 2=tampered (edited real).
+SO_FAKE_TERTIARY_REAL_LABELS = SO_FAKE_REAL_LABELS
+SO_FAKE_TERTIARY_SYNTHETIC_LABELS = frozenset({"fake", "full_synthetic", 1, "1"})
+SO_FAKE_TERTIARY_TAMPERED_LABELS = frozenset({"tampered", 2, "2"})
+
 # HF ClassLabel names are usually ["fake", "real"] → index 0 = fake, 1 = real.
 DEFAULT_FAKE_LABELS = frozenset({"fake", "0", 0})
 DEFAULT_REAL_LABELS = frozenset({"real", "1", 1})
+
+
+def _label_to_tertiary(
+    value: Any,
+    *,
+    real_labels: frozenset[Any],
+    synthetic_labels: frozenset[Any],
+    tampered_labels: frozenset[Any],
+) -> int:
+    normalized = value.strip().lower() if isinstance(value, str) else value
+    if normalized in real_labels or value in real_labels:
+        return 0
+    if normalized in synthetic_labels or value in synthetic_labels:
+        return 1
+    if normalized in tampered_labels or value in tampered_labels:
+        return 2
+    raise ValueError(f"Unrecognized label: {value!r}")
 
 
 def _label_to_binary(value: Any, *, fake_labels: frozenset[Any], real_labels: frozenset[Any]) -> int:
@@ -73,6 +95,22 @@ def _export_caps_met(
     real_done = not export_real or (cap_real is not None and counts[0] >= cap_real)
     fake_done = not export_fake or (cap_fake is not None and counts[1] >= cap_fake)
     return real_done and fake_done
+
+
+def _export_tertiary_caps_met(
+    counts: dict[int, int],
+    *,
+    cap_real: int,
+    cap_synthetic: int,
+    cap_tampered: int,
+    export_real: bool,
+    export_synthetic: bool,
+    export_tampered: bool,
+) -> bool:
+    real_done = not export_real or counts[0] >= cap_real
+    synthetic_done = not export_synthetic or counts[1] >= cap_synthetic
+    tampered_done = not export_tampered or counts[2] >= cap_tampered
+    return real_done and synthetic_done and tampered_done
 
 
 def is_readable_image(path: Path) -> bool:
@@ -548,5 +586,129 @@ def materialize_hf_chunk_from_iterator(
         "skipped_bad_rows": stats.get("skipped_bad_rows", 0),
         "cap_fake": cap_fake,
         "cap_real": cap_real,
+    }
+    return manifest, row_iterator
+
+
+def materialize_hf_chunk_tertiary_from_iterator(
+    row_iterator: Iterator[dict[str, Any]],
+    *,
+    output_root: Path,
+    label_field: str = "label",
+    image_field: str = "image",
+    filename_field: str | None = "filename",
+    real_labels: Iterable[Any] = SO_FAKE_TERTIARY_REAL_LABELS,
+    synthetic_labels: Iterable[Any] = SO_FAKE_TERTIARY_SYNTHETIC_LABELS,
+    tampered_labels: Iterable[Any] = SO_FAKE_TERTIARY_TAMPERED_LABELS,
+    cap_real: int,
+    cap_synthetic: int,
+    cap_tampered: int,
+    filename_prefix: str = "",
+    real_dir: str = "real",
+    synthetic_dir: str = "fake",
+    tampered_dir: str = "tampered",
+    export_real: bool = True,
+    export_synthetic: bool = True,
+    export_tampered: bool = True,
+    desc: str = "export chunk",
+    stream_stats: dict[str, int] | None = None,
+) -> tuple[dict[str, Any], Iterator[dict[str, Any]]]:
+    """Write up to ``cap_*`` images per class (0=real, 1=synthetic, 2=tampered)."""
+    real_set = frozenset(real_labels)
+    synthetic_set = frozenset(synthetic_labels)
+    tampered_set = frozenset(tampered_labels)
+    counts = {0: 0, 1: 0, 2: 0}
+    dir_by_label = {0: real_dir, 1: synthetic_dir, 2: tampered_dir}
+    cap_by_label = {0: cap_real, 1: cap_synthetic, 2: cap_tampered}
+    export_by_label = {0: export_real, 1: export_synthetic, 2: export_tampered}
+    written = 0
+    skipped_labels = 0
+    skipped_save = 0
+    stats = stream_stats if stream_stats is not None else {}
+    output_root.mkdir(parents=True, exist_ok=True)
+    for folder in (real_dir, synthetic_dir, tampered_dir):
+        (output_root / folder).mkdir(parents=True, exist_ok=True)
+
+    target = sum(
+        cap
+        for label, cap in cap_by_label.items()
+        if export_by_label[label] and cap > 0
+    )
+    pbar = tqdm(total=target or None, desc=desc, unit="img", file=sys.stderr)
+
+    while True:
+        if _export_tertiary_caps_met(
+            counts,
+            cap_real=cap_real,
+            cap_synthetic=cap_synthetic,
+            cap_tampered=cap_tampered,
+            export_real=export_real,
+            export_synthetic=export_synthetic,
+            export_tampered=export_tampered,
+        ):
+            break
+        row = next_hf_row_safe(row_iterator, stats=stats)
+        if row is None:
+            break
+        raw_label = row.get(label_field)
+        if raw_label is None:
+            continue
+        try:
+            label = _label_to_tertiary(
+                raw_label,
+                real_labels=real_set,
+                synthetic_labels=synthetic_set,
+                tampered_labels=tampered_set,
+            )
+        except ValueError:
+            skipped_labels += 1
+            continue
+        if not export_by_label[label]:
+            continue
+        if counts[label] >= cap_by_label[label]:
+            continue
+
+        if filename_field and row.get(filename_field):
+            name = Path(str(row[filename_field])).name
+        else:
+            name = f"row_{written:06d}.png"
+        stem = Path(name).stem
+        suffix = Path(name).suffix.lower() or ".png"
+        if suffix not in IMAGE_EXTENSIONS:
+            suffix = ".png"
+        if filename_prefix:
+            stem = f"{filename_prefix}{stem}"
+        folder = dir_by_label[label]
+        out_path = output_root / folder / f"{stem}{suffix}"
+        if out_path.exists():
+            if is_readable_image(out_path):
+                counts[label] += 1
+                written += 1
+                pbar.update(1)
+                continue
+            out_path.unlink(missing_ok=True)
+        try:
+            _save_image(row[image_field], out_path)
+        except (OSError, KeyError, TypeError):
+            skipped_save += 1
+            continue
+        counts[label] += 1
+        written += 1
+        pbar.update(1)
+
+    pbar.close()
+    manifest = {
+        "output_root": str(output_root.resolve()),
+        "written": written,
+        "real": counts[0],
+        "synthetic": counts[1],
+        "tampered": counts[2],
+        "skipped_labels": skipped_labels,
+        "skipped_save": skipped_save,
+        "stream_rows_seen": stats.get("stream_rows_seen", 0),
+        "skipped_bad_rows": stats.get("skipped_bad_rows", 0),
+        "cap_real": cap_real,
+        "cap_synthetic": cap_synthetic,
+        "cap_tampered": cap_tampered,
     }
     return manifest, row_iterator

@@ -7,7 +7,7 @@
   "mix_base_feature_caches": true,
   "max_per_class_subsample": 1000,
   "train_val_fraction": 0.8,
-  "logistic_c": 0.01,
+  "logistic_c": 0.05,
   "random_seed": 42,
   "batch_size": 32,
   "rebuild_feature_cache": false,
@@ -15,7 +15,8 @@
     "epochs": 5,
     "learning_rate": 1.0e-5,
     "weight_decay": 0.01,
-    "train_classifier_only": true
+    "train_classifier_only": true,
+    "unfreeze_encoder_layers": 0
   },
   "output_dir": null
 }

@@ -279,7 +279,8 @@ function Idle({
         </section>
       )}
 
-      <LinkField onSubmit={(link) => onRun({ kind: "post", link })} />
+      {/* With a post on this tab, its button is the one primary action. */}
+      <LinkField secondary={!!tabPost} onSubmit={(link) => onRun({ kind: "post", link })} />
 
       <input
         ref={fileInput}
@@ -345,7 +346,7 @@ function useActiveTabPost() {
   return post;
 }
 
-function LinkField({ onSubmit }: { onSubmit: (link: string) => void }) {
+function LinkField({ secondary, onSubmit }: { secondary: boolean; onSubmit: (link: string) => void }) {
   const [value, setValue] = useState("");
   return (
     <form
@@ -377,7 +378,7 @@ function LinkField({ onSubmit }: { onSubmit: (link: string) => void }) {
             <X aria-hidden className="size-[18px]" />
           </button>
         )}
-        <Button type="submit" className="min-h-9 px-3.5 py-1.5">
+        <Button type="submit" variant={secondary ? "secondary" : "primary"} className="min-h-9 px-3.5 py-1.5">
           Check
         </Button>
       </div>

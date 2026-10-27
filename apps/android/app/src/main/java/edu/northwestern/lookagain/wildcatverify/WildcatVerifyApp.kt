@@ -6,6 +6,7 @@ import edu.northwestern.lookagain.wildcatverify.data.BlueskyAccount
 import edu.northwestern.lookagain.wildcatverify.data.BlueskyFeedService
 import edu.northwestern.lookagain.wildcatverify.data.SessionVault
 import edu.northwestern.lookagain.wildcatverify.data.BlueskyService
+import edu.northwestern.lookagain.wildcatverify.data.BrowserSignIn
 import edu.northwestern.lookagain.wildcatverify.data.CheckPipeline
 import edu.northwestern.lookagain.wildcatverify.data.ClipboardProbe
 import edu.northwestern.lookagain.wildcatverify.data.DemoImageClassifier
@@ -35,12 +36,17 @@ class AppContainer(context: Context) {
     val conditions = DeviceConditions(context)
     val clipboard = ClipboardProbe.system(context)
     val account = BlueskyAccount(SessionVault(context.getSharedPreferences("account", Context.MODE_PRIVATE)))
+    val browserSignIn = BrowserSignIn { account.lastError = "Sign-in was interrupted. Please try again." }
 
     fun pipeline() = CheckPipeline(bluesky, { classifier }, images)
 
     /** Loads the detector and runs it once in the background, so the first real check isn't the slow one. */
     suspend fun warmUpDetector() = withContext(Dispatchers.Default) {
-        (classifier as? TfliteImageClassifier)?.warmUp()
+        try {
+            (classifier as? TfliteImageClassifier)?.warmUp()
+        } catch (t: Throwable) {
+            android.util.Log.e("WildcatVerify", "Detector warm-up failed; checks may use demo until restart", t)
+        }
     }
 
     /** The app's single coordinator, shared by the activity and its intents. */

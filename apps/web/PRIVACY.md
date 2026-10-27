@@ -18,6 +18,8 @@ The Feed loads public image posts from Bluesky's What's Hot feed. Images and ava
 
 When you check an image or post from the extension, only that image or link is sent to the WildcatVerify server, checked the same way, and discarded when you choose Done.
 
+The extension can read pages only on bsky.app, and only to see which post is open in the current tab; it never reads the rest of the page. It keeps two settings in your browser (the server address and whether to show where the detector looked). Open in My Checks passes that one result to the WildcatVerify web app in your browser; the photo itself is not included when you uploaded it.
+
 ## My Checks
 
 By default, past checks are kept in memory and disappear when you close the tab. If you turn on Settings → Keep My Checks, results and small copies of the photos you checked are saved in your browser only, never uploaded, and deleted when you turn the setting off or erase your data.

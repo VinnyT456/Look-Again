@@ -22,8 +22,8 @@ scripts/copy_model.sh          # copies the detector from ml/checkpoints/tflite 
 - **Emulator**: give the AVD 6 cores and 4 GB (Device Manager → Edit → Advanced, or
   `hw.cpu.ncore=6`, `hw.ramSize=4096`, `hw.gpu.mode=host` in its `config.ini`). The default
   "Medium Phone" AVD had 1 core, which made every check 5–10× slower. Keep Quick Boot on.
-  Close other heavy jobs (model exports, Xcode builds) while it runs; on a 16 GB Mac the
-  emulator hangs and quits when memory runs out.
+  Close other heavy jobs (model exports, Xcode builds, Gradle builds) while it runs; on a 16 GB
+  Mac the emulator hangs and quits when memory runs out.
 - **Detector**: runs on the CPU with XNNPACK (the emulator has no GPU delegate support).
   One check is ~1.3–1.5 s on a 6-core emulator; real phones are usually faster. The model is
   warmed up once in the background after launch, so the first check isn't the slow one.
@@ -35,8 +35,12 @@ scripts/copy_model.sh          # copies the detector from ml/checkpoints/tflite 
 ## Detector
 
 `app/src/main/assets/wildcat_detector.tflite` is the CommunityForensics ViT + rich probe,
-exported with `ml/scripts/export/community_forensics_vit_heatmap_tflite.py` (outputs
-`fake_prob` and the 24×24 `patch_map`; verified against PyTorch). `DetectorPreprocessor`
+using the `genai_plus_balance` fine-tuned probe (same weights as iOS), exported with
+`ml/scripts/export/community_forensics_vit_heatmap_tflite.py --weights …` (outputs `fake_prob`
+and the 24×24 `patch_map`). `DetectorModelTest` checks both against PyTorch
+(`androidTest/assets/fixtures/torch_reference.json`): probabilities within 1e-4, heatmap
+correlation > 0.99. The iOS reference isn't used for heatmaps: Core ML's fp16 maps drift from
+PyTorch (correlation ~0.6). `DetectorPreprocessor`
 reimplements PIL's antialiased bicubic resize, so preprocessing matches Python's channel means
 within 0.002. If the model fails to load, the labelled demo classifier is used.
 
@@ -52,7 +56,16 @@ within 0.002. If the model fails to load, the labelled demo classifier is used.
   (`ContentCredentialsReader`; signatures aren't verified).
 - **Feed ••• menu**: hide a post, hide an account (Settings → Hidden Accounts), report.
 - **Terms of Use** ([TERMS.md](TERMS.md)) and privacy updates ([PRIVACY.md](PRIVACY.md)).
-- Not ported (iOS-only): Control Center/Lock Screen controls, Visual Intelligence, Siri.
+- **Feed auto-check**: posts are checked as they scroll into view; a verdict line (badge, %,
+  Details) waits under each one. Paused in Battery Saver and on metered networks or Data Saver
+  (`DeviceConditions`); toggle in Settings → Feed.
+- **Copied-link offer** on the Check tab: when the clipboard probably holds a link, a card offers
+  to check it. Only the clip's description is read until you tap (`ClipboardProbe`).
+- **Answer-first results**: verdict, photo and credentials first; findings, what to do and the
+  source sit behind "Why This Verdict?".
+- **Ways to Check**: shown on first launch and in Settings.
+- Not ported (iOS-only): Action extension (Share already covers it), Control Center/Lock Screen
+  controls, Visual Intelligence, Siri.
 
 ## Builds
 
@@ -65,10 +78,13 @@ Each has `debug`, `fast` (optimized, debug-signed) and `release`: e.g. `./gradle
 
 ## Labels
 
-- **Feed tab** (`FeedLabeler`): labels each post's full-size photo as it scrolls into view,
-  visible posts first, one at a time. Optional Bluesky sign-in (app password,
-  `com.atproto.server.createSession`) adds the Following timeline; tokens are encrypted with an
-  Android Keystore key (`SessionVault`).
+- **Feed tab** (`FeedAutoChecker`): checks each post's thumbnail as it scrolls into view,
+  visible posts first, one at a time; posts that scroll away are dropped from the queue. Optional Bluesky sign-in adds the Following timeline.
+- **Sign-in** (`BlueskyOAuth.kt`, `BlueskyAccount`, `BrowserSignIn`): AT Protocol OAuth, the same
+  client as iOS (`docs/oauth-client-metadata.json`): PAR with PKCE, DPoP-bound tokens (P-256 key
+  per session), Bluesky's page in a Custom Tab, and the redirect `io.github.vinnyt456:/oauth/callback`
+  back to `MainActivity`. "Account on Another Server…" signs in through that account's own server.
+  The session is encrypted with an Android Keystore key (`SessionVault`).
 - **Label tab** (`ScreenLabelService` + `FloatingTab`): MediaProjection screen capture at half
   resolution (user consent each session; Android 14+ can share only Bluesky), a draggable tab over
   other apps, and badges. Photos are found from pixels (`PixelPhotoFinder`). Big frame-to-frame
@@ -83,5 +99,8 @@ Each has `debug`, `fast` (optimized, debug-signed) and `release`: e.g. `./gradle
 | iOS | Android |
 |---|---|
 | Share extension | Share → **WildcatVerify** (`ShareActivity`, memory only, Done discards) |
-| Siri "Check This Post" / "Check the copied link" | Removed: Feed labels and the label tab label photos without leaving the feed |
+| Siri "Check This Post" | Removed: Feed auto-check and the label tab label photos without leaving the feed |
+| Siri "Check the copied link" | Copied-link card on the Check tab |
+| `ASWebAuthenticationSession` sign-in | Custom Tab + redirect intent filter |
+| Keychain | Keystore-encrypted SharedPreferences |
 | UserDefaults / Application Support | SharedPreferences / `noBackupFilesDir/History` |

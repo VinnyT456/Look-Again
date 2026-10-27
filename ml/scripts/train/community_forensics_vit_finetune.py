@@ -60,6 +60,20 @@ def main() -> None:
         action="store_true",
         help="Train probe only on the custom dataset (no universal cache mix)",
     )
+    parser.add_argument("--logistic-c", type=float, default=None, help="Override probe LogisticRegression C")
+    parser.add_argument("--backbone-epochs", type=int, default=None)
+    parser.add_argument("--backbone-lr", type=float, default=None, help="Backbone AdamW learning rate")
+    parser.add_argument(
+        "--unfreeze-encoder-layers",
+        type=int,
+        default=None,
+        help="Unfreeze last N ViT encoder blocks (with stock classifier)",
+    )
+    parser.add_argument(
+        "--train-full-vit",
+        action="store_true",
+        help="Unfreeze entire ViT (sets backbone.train_classifier_only=false)",
+    )
     args = parser.parse_args()
 
     try:
@@ -78,6 +92,16 @@ def main() -> None:
         config.rebuild_feature_cache = True
     if args.no_mix_base:
         config.mix_base_feature_caches = False
+    if args.logistic_c is not None:
+        config.logistic_c = args.logistic_c
+    if args.backbone_epochs is not None:
+        config.backbone.epochs = args.backbone_epochs
+    if args.backbone_lr is not None:
+        config.backbone.learning_rate = args.backbone_lr
+    if args.unfreeze_encoder_layers is not None:
+        config.backbone.unfreeze_encoder_layers = args.unfreeze_encoder_layers
+    if args.train_full_vit:
+        config.backbone.train_classifier_only = False
 
     try:
         config.resolved_dataset_root()

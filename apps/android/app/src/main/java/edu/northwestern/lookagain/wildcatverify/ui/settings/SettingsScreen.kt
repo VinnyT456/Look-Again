@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import edu.northwestern.lookagain.wildcatverify.BuildConfig
 import edu.northwestern.lookagain.wildcatverify.data.TfliteImageClassifier
 import edu.northwestern.lookagain.wildcatverify.model.AppLinks
+import edu.northwestern.lookagain.wildcatverify.ui.account.BlueskySignInRow
+import edu.northwestern.lookagain.wildcatverify.ui.account.OtherServerDialog
 import edu.northwestern.lookagain.wildcatverify.ui.about.CreditsScreen
 import edu.northwestern.lookagain.wildcatverify.ui.about.PrivacyPolicyScreen
 import edu.northwestern.lookagain.wildcatverify.ui.about.TermsScreen
@@ -122,8 +124,28 @@ private fun SettingsList(app: AppViewModel, push: (SettingsRoute) -> Unit, modif
     var usingRealModel by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(Unit) { usingRealModel = app.isUsingRealModel() }
     var confirmingErase by remember { mutableStateOf(false) }
+    var confirmingSignOut by remember { mutableStateOf(false) }
+    var askingForHandle by remember { mutableStateOf(false) }
 
     LazyColumn(modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        // Same order as iOS: Account first, then the ways to check.
+        item {
+            Section(
+                header = "Bluesky Account",
+                footer = "Optional. Signed in, the Feed shows the posts you follow, checked as you scroll. WildcatVerify only reads your timeline; it never posts, likes or follows. Your sign-in is kept encrypted on this device.",
+            ) {
+                val handle = app.account.handle
+                if (handle != null) {
+                    ValueRow("Signed In", "@$handle")
+                    RowDivider()
+                    LabelRow("Sign Out", titleColor = MaterialTheme.colorScheme.error) { confirmingSignOut = true }
+                } else {
+                    BlueskySignInRow(app)
+                    RowDivider(IconRowInset)
+                    LabelRow("Account on Another Server…", titleColor = MaterialTheme.colorScheme.primary) { askingForHandle = true }
+                }
+            }
+        }
         item {
             Section(footer = "The quickest ways to check a post, and the tab that labels photos in the Bluesky app itself.") {
                 LabelRow("Ways to Check", Icons.Outlined.Bolt, chevron = true) { push(SettingsRoute.WAYS_TO_CHECK) }
@@ -146,30 +168,12 @@ private fun SettingsList(app: AppViewModel, push: (SettingsRoute) -> Unit, modif
             }
         }
         item {
-            val session = app.account.session
-            Section(
-                header = "Bluesky Account",
-                footer = if (session != null) "Used only to show your Following feed. Sign-in token kept encrypted on this device." else "Optional. Sign in to see your Following feed in the Feed tab.",
-            ) {
-                if (session != null) {
-                    ValueRow("Signed in as", "@${session.handle}")
-                    RowDivider()
-                    LabelRow("Sign Out", titleColor = MaterialTheme.colorScheme.error) { app.feed.signOut() }
-                } else {
-                    LabelRow("Sign In", Icons.AutoMirrored.Outlined.Login, titleColor = MaterialTheme.colorScheme.primary) {
-                        app.selectedTab = AppTab.FEED
-                        app.feed.isShowingSignIn = true
-                    }
-                }
-            }
-        }
-        item {
             Section(
                 header = "History",
                 footer = if (settings.keepHistory) {
                     "Your checks and small copies of photos you checked are saved on this device only and left out of backups. Turning this off deletes them."
                 } else {
-                    "Off: My Checks clears when the app is closed. Nothing is saved."
+                    "Off: My Checks clears when you close the app. Nothing is saved."
                 },
             ) {
                 ToggleRow("Keep My Checks", Icons.Outlined.Restore, settings.keepHistory, app::setKeepHistory)
@@ -242,6 +246,21 @@ private fun SettingsList(app: AppViewModel, push: (SettingsRoute) -> Unit, modif
             }
         }
         item { Box(Modifier.navigationBarsPadding().padding(bottom = 24.dp)) }
+    }
+
+    if (askingForHandle) OtherServerDialog(app, onDismiss = { askingForHandle = false })
+    if (confirmingSignOut) {
+        AlertDialog(
+            onDismissRequest = { confirmingSignOut = false },
+            title = { Text("Sign out of Bluesky?") },
+            text = { Text("The Following feed goes away until you sign in again.") },
+            confirmButton = {
+                TextButton(onClick = { confirmingSignOut = false; app.signOut() }) {
+                    Text("Sign Out", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmingSignOut = false }) { Text("Cancel") } },
+        )
     }
 
     if (confirmingErase) {

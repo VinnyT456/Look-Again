@@ -1,0 +1,22 @@
+{
+  "run_name": "so_fake_probe_v3",
+  "dataset_root": "data/finetune/so_fake_materialized",
+  "fake_dir": "fake",
+  "real_dir": "real",
+  "mode": "all",
+  "mix_base_feature_caches": false,
+  "max_per_class_subsample": 1000,
+  "train_val_fraction": 0.8,
+  "logistic_c": 0.05,
+  "random_seed": 42,
+  "batch_size": 32,
+  "rebuild_feature_cache": true,
+  "backbone": {
+    "epochs": 5,
+    "learning_rate": 1.0e-5,
+    "weight_decay": 0.01,
+    "train_classifier_only": true,
+    "unfreeze_encoder_layers": 2
+  },
+  "output_dir": null
+}

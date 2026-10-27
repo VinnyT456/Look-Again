@@ -74,6 +74,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
@@ -82,9 +84,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -112,6 +118,15 @@ fun CheckScreen(app: AppViewModel) {
     val viewModel = app.check
     val top = viewModel.path.lastOrNull()
     BackHandler(enabled = top != null) { viewModel.pop() }
+
+    // Screen readers hear when a check starts; RootScreen announces the verdict.
+    val view = LocalView.current
+    LaunchedEffect(viewModel.startAnnouncement) {
+        viewModel.startAnnouncement?.let {
+            view.announceForAccessibility(it)
+            viewModel.startAnnounced()
+        }
+    }
 
     NavStack(viewModel.path, screen = { item ->
         ResultsScreen(item, onBack = viewModel::pop, onCheckAnother = app::startNewCheck)
@@ -262,6 +277,7 @@ private fun CheckCard(app: AppViewModel, modifier: Modifier = Modifier) {
 private fun LinkInput(viewModel: CheckViewModel) {
     val context = LocalContext.current
     val focus = LocalFocusManager.current
+    val fieldFocus = remember { FocusRequester() }
     var focused by remember { mutableStateOf(false) }
     val submit = {
         focus.clearFocus()
@@ -297,7 +313,11 @@ private fun LinkInput(viewModel: CheckViewModel) {
                             .size(44.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
-                            .clickable(onClickLabel = "Paste") { pasteText(context)?.let { viewModel.checkPasted(it) } },
+                            .clickable(onClickLabel = "Paste") {
+                                // Nothing to paste: put the cursor in the field instead of doing nothing.
+                                pasteText(context)?.takeIf { it.isNotEmpty() }?.let { viewModel.checkPasted(it) }
+                                    ?: fieldFocus.requestFocus()
+                            },
                         contentAlignment = Alignment.Center,
                     ) { Icon(Icons.Filled.ContentPaste, contentDescription = "Paste", tint = Color.White, modifier = Modifier.size(20.dp)) }
                 } else {
@@ -316,6 +336,7 @@ private fun LinkInput(viewModel: CheckViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = Metrics.controlHeight)
+                .focusRequester(fieldFocus)
                 .onFocusChanged { focused = it.isFocused }
                 .border(1.5.dp, if (focused) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(Metrics.fieldRadius))
                 .semantics { contentDescription = "Bluesky post link" },
@@ -372,6 +393,15 @@ private fun PhotoDropzone(viewModel: CheckViewModel) {
             }
             .clickable(interaction, indication = null, role = Role.Button, onClickLabel = "Choose photo or screenshot to check") {
                 picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
+            // One label for the whole zone, as on iOS, instead of reading every line and tag.
+            .clearAndSetSemantics {
+                contentDescription = "Choose photo or screenshot to check"
+                role = Role.Button
+                onClick {
+                    picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    true
+                }
             }
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

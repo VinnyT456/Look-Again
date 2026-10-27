@@ -19,6 +19,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
         const val WELCOME_SEEN = "settings.welcomeSeen"
         const val BEST_PRACTICE_SCORE = "learn.bestScore"
         const val HIDDEN_ACCOUNTS = "feed.hiddenAccounts"
+        const val FEED_SIGN_IN_DISMISSED = "feed.signInDismissed"
     }
 
     private var _keepHistory by mutableStateOf(prefs.getBoolean(Key.KEEP_HISTORY, false))
@@ -29,6 +30,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
     private var _autoCheckFeed by mutableStateOf(prefs.getBoolean(Key.AUTO_CHECK_FEED, true))
     private var _welcomeSeen by mutableStateOf(prefs.getBoolean(Key.WELCOME_SEEN, false))
     private var _bestPracticeScore by mutableStateOf(prefs.getInt(Key.BEST_PRACTICE_SCORE, 0))
+    private var _feedSignInDismissed by mutableStateOf(prefs.getBoolean(Key.FEED_SIGN_IN_DISMISSED, false))
     private var _hiddenAccounts by mutableStateOf(
         runCatching { Json.decodeFromString<Map<String, String>>(prefs.getString(Key.HIDDEN_ACCOUNTS, null) ?: "{}") }.getOrDefault(emptyMap()),
     )
@@ -81,6 +83,11 @@ class SettingsStore(private val prefs: SharedPreferences) {
         get() = _hiddenAccounts
         set(value) { _hiddenAccounts = value; prefs.edit { putString(Key.HIDDEN_ACCOUNTS, Json.encodeToString(value)) } }
 
+    /** The "See your own feed" card at the top of What's Hot was closed. */
+    var feedSignInDismissed: Boolean
+        get() = _feedSignInDismissed
+        set(value) { _feedSignInDismissed = value; prefs.edit { putBoolean(Key.FEED_SIGN_IN_DISMISSED, value) } }
+
     /** Back to defaults; used by "Erase All Data". */
     fun reset() {
         keepHistory = false
@@ -92,5 +99,6 @@ class SettingsStore(private val prefs: SharedPreferences) {
         welcomeSeen = false
         bestPracticeScore = 0
         hiddenAccounts = emptyMap()
+        feedSignInDismissed = false
     }
 }

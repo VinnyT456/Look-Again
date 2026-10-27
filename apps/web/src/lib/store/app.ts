@@ -106,8 +106,12 @@ const messageOf = (error: unknown) => (error instanceof ApiError ? error.message
 // MARK: Startup
 
 /** Reads settings and, when Keep My Checks is on, saved checks. Runs once on the client. */
+let hydrating = false;
+
 export async function hydrate() {
-  if (app.get().hydrated) return;
+  // Effects can run twice in development; the first call owns startup.
+  if (hydrating) return;
+  hydrating = true;
   api
     .detectorReady()
     .then((ready) => app.set({ detectorReady: ready }))
@@ -123,6 +127,8 @@ export async function hydrate() {
   app.set({ hydrated: true, settings, cases, bestScore: loadBestScore() });
   restartPractice();
   importFromHash();
+  // A hand-off into a tab that's already open arrives as a hash change, not a page load.
+  window.addEventListener("hashchange", importFromHash);
 }
 
 /** The browser extension hands a result over as `#import=<base64 JSON>`, so it can be kept in My Checks. */

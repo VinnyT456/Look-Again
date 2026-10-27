@@ -51,27 +51,9 @@ def pick_device() -> torch.device:
 
 
 def load_model(device: torch.device) -> tuple[ViTForImageClassification, ViTImageProcessor]:
-    MODEL_CACHE.mkdir(parents=True, exist_ok=True)
-    try:
-        processor = ViTImageProcessor.from_pretrained(
-            MODEL_ID, cache_dir=MODEL_CACHE, local_files_only=True
-        )
-        model = ViTForImageClassification.from_pretrained(
-            MODEL_ID,
-            cache_dir=MODEL_CACHE,
-            torch_dtype=torch.float32,
-            local_files_only=True,
-        )
-    except OSError:
-        processor = ViTImageProcessor.from_pretrained(MODEL_ID, cache_dir=MODEL_CACHE)
-        model = ViTForImageClassification.from_pretrained(
-            MODEL_ID,
-            cache_dir=MODEL_CACHE,
-            torch_dtype=torch.float32,
-        )
-    model.to(device=device, dtype=torch.float32)
-    model.eval()
-    return model, processor
+    from look_again.community_forensics_vit_probe import load_community_forensics_vit
+
+    return load_community_forensics_vit(device)
 
 
 def _jsonable(value: object) -> object:

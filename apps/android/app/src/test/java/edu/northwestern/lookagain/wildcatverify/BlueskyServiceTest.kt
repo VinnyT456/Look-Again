@@ -45,6 +45,13 @@ class BlueskyLinkTest {
         assertNull(BlueskyService.linkIn("nothing to see https://example.com"))
     }
 
+    @Test fun findsLinksRunTogetherWithText() {
+        assertEquals("https://bsky.app/profile/a/post/b", BlueskyService.linkIn("look:https://bsky.app/profile/a/post/b!"))
+        assertEquals("https://bsky.app/profile/a/post/b", BlueskyService.linkIn("Is this real?https://bsky.app/profile/a/post/b?"))
+        assertEquals("https://staging.bsky.app/profile/a/post/b", BlueskyService.linkIn("see https://staging.bsky.app/profile/a/post/b."))
+        assertNull(BlueskyService.linkIn("https://notbsky.app/profile/a/post/b"))
+    }
+
     @Test fun titleIsFirstLineTrimmed() {
         assertEquals("Storm over the lake", CheckPipeline.title("Storm over the lake\nsecond"))
         assertEquals("Bluesky post", CheckPipeline.title(""))

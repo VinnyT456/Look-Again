@@ -36,6 +36,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Bluesky's sign-in page redirects here (io.github.vinnyt456:/oauth/callback),
+                 the same OAuth client as the iOS app. singleTask closes the browser tab. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="io.github.vinnyt456" />
+            </intent-filter>
         </activity>
 
         <!-- Share → "WildcatVerify": like the iOS share extension. Checks one image or

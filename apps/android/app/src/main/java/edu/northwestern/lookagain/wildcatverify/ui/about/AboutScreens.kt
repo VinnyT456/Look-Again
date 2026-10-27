@@ -1,5 +1,6 @@
 package edu.northwestern.lookagain.wildcatverify.ui.about
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,8 @@ fun AboutSheet(onDismiss: () -> Unit) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var route by remember { mutableStateOf<AboutRoute?>(null) }
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = state, containerColor = colors.groupedBackground) {
+        // Back on Privacy Policy, Terms or Credits returns to About instead of closing the sheet.
+        BackHandler(enabled = route != null) { route = null }
         when (route) {
             AboutRoute.PRIVACY_POLICY -> PrivacyPolicyScreen(onBack = { route = null })
             AboutRoute.CREDITS -> CreditsScreen(onBack = { route = null })
@@ -125,7 +128,7 @@ private fun AboutContent(onDismiss: () -> Unit, onOpen: (AboutRoute) -> Unit) {
 fun PrivacyPolicyScreen(onBack: () -> Unit) {
     Scaffold(containerColor = colors.groupedBackground, topBar = { PushedTopBar("Privacy Policy", onBack) }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), horizontalAlignment = Alignment.CenterHorizontally) {
-            item { Section { TextRow("WildcatVerify is built so your photos and checks stay on your device. Last updated October 15, 2026.") } }
+            item { Section { TextRow("WildcatVerify is built so your photos and checks stay on your device. Last updated October 19, 2026.") } }
             item {
                 Section(header = "Photos you choose") {
                     TextRow("Android's photo picker gives the app only the photo you pick, never the rest of your library. It is analyzed in memory on this device, never uploaded or written to disk, and is discarded when you delete the check, clear My Checks, or the app is closed. Location and other personal metadata aren't read. If the photo carries Content Credentials, only the app or device that made it and its edit history are read and shown with the result.")
@@ -134,7 +137,6 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             item {
                 Section(header = "Items you share") {
                     TextRow("When you use Share → WildcatVerify in another app, only what you shared reaches the app. It is checked in memory the same way and discarded when you tap Done.")
-                    RowDivider()
                 }
             }
             item {
@@ -148,7 +150,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             }
             item {
                 Section(header = "Your Bluesky account") {
-                    TextRow("Signing in is optional and only used to show your Following feed. Use an app password; WildcatVerify sends it to Bluesky once and keeps only the sign-in token, encrypted with a key stored in Android's Keystore. Signing out or Erase All Data deletes it.")
+                    TextRow("Signing in is optional and only used to show your Following feed. You sign in on Bluesky's own page, so WildcatVerify never sees your password. It keeps only the sign-in token, bound to a key made on this device and encrypted with a key stored in Android's Keystore, and only ever reads your timeline. Signing out or Erase All Data deletes it.")
                 }
             }
             item {
@@ -165,7 +167,7 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
             }
             item {
                 Section(header = "The Feed") {
-                    TextRow("The Feed loads image posts directly from Bluesky: the public What's Hot feed, or your Following feed if you sign in. With Check Posts Automatically on, each post's image is analyzed on this device as it appears; those verdicts stay in memory and aren't added to My Checks unless you open the post.")
+                    TextRow("The Feed loads image posts directly from Bluesky: the public What's Hot feed, or your Following feed if you sign in. With Check Posts Automatically on, each post's image is analyzed on this device as it appears; those verdicts stay in memory and aren't added to My Checks unless you open the post. Automatic checks pause in Battery Saver and on mobile data or Data Saver.")
                     RowDivider()
                     TextRow("When you open the app, it asks Android only whether the clipboard looks like a link, from its description, without reading it. The link is read only when you tap Paste.")
                 }
@@ -257,7 +259,7 @@ fun CreditsScreen(onBack: () -> Unit) {
 @Composable
 fun TermsScreen(onBack: () -> Unit) {
     val sections = listOf(
-        null to "These terms cover your use of WildcatVerify. Last updated October 15, 2026.",
+        null to "These terms cover your use of WildcatVerify. Last updated October 15, 2026. Google Play's terms also apply when you get it from Google Play.",
         "What WildcatVerify does" to "It estimates whether a photo looks real, edited or AI-generated, using a detection model that runs on your device. It's a tool to help you decide what to trust, not a final answer.",
         "Verdicts are estimates" to "No detector is always right. A verdict can be wrong in either direction, and the confidence number is the model's own score, not a guarantee. Don't rely on a verdict alone for anything important, such as news, legal, academic or safety decisions.",
         "Use it fairly" to "Don't use a verdict to harass, shame or publicly accuse someone of faking a photo. If something matters, look for other evidence: the original poster, other photos of the same moment, and trusted reporting. Don't use the app to break the law or anyone's rights.",

@@ -19,7 +19,7 @@ When you use Share → WildcatVerify in another app, only what you shared reache
 
 ## Your Bluesky account
 
-Signing in is optional and only used to show your Following feed. Use an app password; WildcatVerify sends it to Bluesky once and keeps only the sign-in token, encrypted with a key stored in Android's Keystore. Signing out or Erase All Data deletes it.
+Signing in is optional and only used to show your Following feed. You sign in on Bluesky's own page, so WildcatVerify never sees your password. It keeps only the sign-in token, bound to a key made on this device and encrypted with a key stored in Android's Keystore, and only ever reads your timeline. Signing out or Erase All Data deletes it.
 
 ## The Feed and copied links
 
@@ -52,5 +52,25 @@ Delete one check with a swipe, clear My Checks, or use Settings → Erase All Da
 - No account needed; Bluesky sign-in is optional
 - No analytics, ads or tracking
 - No data sold, shared or collected
+
+## What is kept, and for how long
+
+| Data | Where | How long |
+|---|---|---|
+| Photos and screenshots you check | Memory on your device | Until you delete the check or the app is closed |
+| Screen frames from the label tab or Auto-Label | Memory on your device | Replaced as you scroll; never saved |
+| My Checks (if **Keep My Checks** is on) | App storage on your device, not backed up | Until you turn it off, delete it, or erase data |
+| Bluesky sign-in token (if you sign in) | App storage on your device, encrypted with an Android Keystore key | Until you sign out or erase data |
+| Settings, best score, hidden accounts | App settings on your device | Until you change them or erase data |
+| Clipboard contents | Read only when you tap Paste | Not kept; only a Bluesky link is used |
+| Anything on a server | Nowhere | WildcatVerify has no server |
+
+## Children
+
+WildcatVerify does not knowingly collect information from anyone, including children under 13.
+
+## Changes
+
+If a future version changes how data is handled, this policy will be updated before that version ships, and the in-app copy under Settings → Privacy Policy will match it.
 
 Contact: https://github.com/VinnyT456/Look-Again/issues

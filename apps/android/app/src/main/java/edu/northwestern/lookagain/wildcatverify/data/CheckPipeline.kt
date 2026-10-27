@@ -47,7 +47,8 @@ class CheckPipeline(
         postUrl: String,
         onImage: (Bitmap) -> Unit = {},
     ): VerificationCase {
-        val classifier = classifier()
+        // Loaded after the first photo arrives, so its preview shows while the detector loads.
+        var detector: ImageClassifier? = null
         val cases = urls.mapIndexed { index, url ->
             val image = try {
                 images.image(url)
@@ -57,9 +58,10 @@ class CheckPipeline(
                 throw CheckException.Network
             }
             if (index == 0) onImage(image)
+            val model = detector ?: classifier().also { detector = it }
             makeCase(
-                isDemo = classifier.isDemo,
-                result = classifier.classify(image),
+                isDemo = model.isDemo,
+                result = model.classify(image),
                 title = title(text),
                 handle = handle,
                 postUrl = postUrl,
@@ -73,24 +75,29 @@ class CheckPipeline(
         return if (cases.size > 1) lead.copy(postImages = cases) else lead
     }
 
-    /** Decodes image data (downsampled, metadata dropped), keeps it in memory only, and classifies it. */
-    suspend fun checkImage(data: ByteArray, onImage: (Bitmap) -> Unit = {}): VerificationCase {
+    /**
+     * Decodes image data (downsampled, metadata dropped), keeps it in memory only, and classifies it.
+     * @param onStored called with the in-memory address of the photo, so a caller can drop it later.
+     */
+    suspend fun checkImage(data: ByteArray, onStored: (String) -> Unit = {}, onImage: (Bitmap) -> Unit = {}): VerificationCase {
         val image = ImageRepository.downsample(data, ImageRepository.FULL_PIXEL_SIZE)
             ?: throw CheckException.UnreadablePhoto
         // Credentials live in the file's metadata, which decoding drops, so read them from the original bytes.
         val credentials = withContext(Dispatchers.Default) { ContentCredentialsReader.read(data) }
-        return checkImage(image, onImage = onImage).copy(credentials = credentials)
+        return checkImage(image, onStored = onStored, onImage = onImage).copy(credentials = credentials)
     }
 
     /** Classifies an already-decoded image (e.g. a photo area on screen), keeping it in memory only. */
     suspend fun checkImage(
         image: Bitmap,
         title: String = "Uploaded photo",
+        onStored: (String) -> Unit = {},
         onImage: (Bitmap) -> Unit = {},
     ): VerificationCase {
         val id = UUID.randomUUID().toString()
         val url = InMemoryImage.url(id)
         images.storeUpload(image, url)
+        onStored(url)
         onImage(image)
         val classifier = classifier()
         val result = classifier.classify(image)

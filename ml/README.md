@@ -86,6 +86,7 @@ models, and speech-deepfake heads. See `old_models/README.md` and `docs/experime
 | CIFAKE + Defactify (balanced) | `community_forensics_vit_finetune_cifake_defactify_balance` |
 | `DFBench/DFBench_Image25` | `community_forensics_vit_finetune_dfbench` |
 | `saberzl/So-Fake-Set` | `community_forensics_vit_finetune_sofake` (`full_synthetic` + `tampered` → fake) |
+| `saberzl/So-Fake-Set` (3-class) | `community_forensics_vit_finetune_sofake_tertiary` → `checkpoints/community_forensics_sofake_tertiary/` |
 
 Related (eval, not wired to train CLI): `saberzl/So-Fake-OOD`.
 

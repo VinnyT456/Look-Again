@@ -1,0 +1,12 @@
+{
+  "client_id": "https://vinnyt456.github.io/Look-Again/oauth-client-metadata.json",
+  "client_name": "WildcatVerify",
+  "client_uri": "https://vinnyt456.github.io/Look-Again/",
+  "application_type": "native",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "scope": "atproto transition:generic",
+  "redirect_uris": ["io.github.vinnyt456:/oauth/callback"],
+  "token_endpoint_auth_method": "none",
+  "dpop_bound_access_tokens": true
+}

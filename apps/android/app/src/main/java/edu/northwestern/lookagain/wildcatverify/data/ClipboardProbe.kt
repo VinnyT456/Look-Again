@@ -31,9 +31,14 @@ class ClipboardProbe(
                             !description.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) &&
                             !description.hasMimeType(ClipDescription.MIMETYPE_TEXT_URILIST) -> false
                         // Android 12+ classifies copied text without handing it to apps.
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-                            description.classificationStatus == ClipDescription.CLASSIFICATION_COMPLETE ->
-                            description.getConfidenceScore(TextClassifier.TYPE_URL) >= 0.5f
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> when (description.classificationStatus) {
+                            ClipDescription.CLASSIFICATION_COMPLETE -> description.getConfidenceScore(TextClassifier.TYPE_URL) >= 0.5f
+                            // Still classifying: wait for the next look rather than offer plain text.
+                            ClipDescription.CLASSIFICATION_NOT_COMPLETE -> false
+                            // This device doesn't classify clips, so any copied text may be a link.
+                            else -> true
+                        }
+                        // Android 9–11 can't tell without reading the text, so any copied text may be a link.
                         else -> true
                     }
                 },

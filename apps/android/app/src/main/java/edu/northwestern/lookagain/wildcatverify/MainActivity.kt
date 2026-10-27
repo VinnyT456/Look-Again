@@ -16,6 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val app = container.app
+        container.browserSignIn.attach(this)
         setContent {
             WildcatTheme { RootScreen(app) }
         }
@@ -35,7 +36,16 @@ class MainActivity : ComponentActivity() {
         handle(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        container.browserSignIn.attach(this)
+        // Back from the Bluesky sign-in tab without a redirect: the user closed it.
+        container.browserSignIn.appResumed()
+    }
+
     private fun handle(intent: Intent?) {
+        // Bluesky's sign-in page sending the user back.
+        if (container.browserSignIn.deliver(intent?.data)) return
         // A tapped Auto-Label badge: show that photo's result.
         val id = intent?.getStringExtra(EXTRA_OPEN_CASE) ?: return
         container.app.openCase(id)

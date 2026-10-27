@@ -57,7 +57,11 @@ class HistoryPersistence(val directory: File) {
         }
         val temp = File(directory, "history.json.tmp")
         temp.writeText(lenientJson.encodeToString(stored))
-        temp.renameTo(indexFile)
+        // A rename can fail (e.g. the target is busy); never leave the old list in place silently.
+        if (!temp.renameTo(indexFile)) {
+            temp.copyTo(indexFile, overwrite = true)
+            temp.delete()
+        }
         photosDir.listFiles()?.filter { it.name !in kept }?.forEach { it.delete() }
         return stored
     }

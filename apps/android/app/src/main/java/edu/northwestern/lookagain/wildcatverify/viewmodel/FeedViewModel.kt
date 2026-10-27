@@ -1,5 +1,6 @@
 package edu.northwestern.lookagain.wildcatverify.viewmodel
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +16,7 @@ import edu.northwestern.lookagain.wildcatverify.model.VerdictType
 import edu.northwestern.lookagain.wildcatverify.model.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -55,7 +57,6 @@ class FeedViewModel(
         private set
     var hasMore by mutableStateOf(true)
         private set
-    var isShowingSignIn by mutableStateOf(false)
 
     private var chosenSource by mutableStateOf<FeedSource?>(null)
     private var memoryHiddenAccounts by mutableStateOf<Map<String, String>>(emptyMap())
@@ -85,11 +86,11 @@ class FeedViewModel(
     /** Following once signed in (unless the user picked What's Hot); What's Hot otherwise. */
     val source: FeedSource
         get() = when {
-            account.session == null -> FeedSource.WHATS_HOT
+            !account.isSignedIn -> FeedSource.WHATS_HOT
             else -> chosenSource ?: FeedSource.FOLLOWING
         }
 
-    val isSignedIn: Boolean get() = account.session != null
+    val isSignedIn: Boolean get() = account.isSignedIn
 
     /** Checks posts on its own as they appear; null turns that off (tests). */
     var autoCheck: FeedAutoChecker? = null
@@ -99,37 +100,88 @@ class FeedViewModel(
     private var cursor: String? = null
     private var loadedSource: FeedSource? = null
     private var loadJob: Job? = null
+    private var moreJob: Job? = null
 
-    private suspend fun fetch(cursor: String?): FeedPage = when (source) {
+    /** The source [posts], [cursor] and [status] belong to; [source] can move ahead of it when sign-in changes. */
+    private var shownSource = FeedSource.WHATS_HOT
+    /** Each source's posts and place, kept while the other is shown. */
+    private val saved = mutableMapOf<FeedSource, Snapshot>()
+
+    private data class Snapshot(
+        val posts: List<FeedPost>,
+        val cursor: String?,
+        val hasMore: Boolean,
+        val status: Status,
+        val loadedSource: FeedSource?,
+    )
+
+    /** Each source's scroll position, kept across source switches, pushed posts and tab switches. */
+    private val listStates = mutableStateMapOf<FeedSource, LazyListState>().apply {
+        FeedSource.entries.forEach { put(it, LazyListState()) }
+    }
+
+    fun listState(source: FeedSource): LazyListState = listStates.getValue(source)
+
+    private suspend fun fetch(from: FeedSource, cursor: String?): FeedPage = when (from) {
         FeedSource.FOLLOWING -> account.timeline(cursor)
         FeedSource.WHATS_HOT -> publicFeed.fetchPage(cursor)
     }
 
+    /** Shows another source, picking up where it was left. */
     fun select(new: FeedSource) {
-        if (new == source) return
+        if (new == source || (new == FeedSource.FOLLOWING && !account.isSignedIn)) return
         chosenSource = new
-        posts = emptyList()
-        status = Status.Idle
-        refreshAsync()
+        path = emptyList()
+        show(new)
+        loadIfNeeded()
+    }
+
+    /** Saves what's on screen under its source and restores [new]'s posts and place. */
+    private fun show(new: FeedSource) {
+        if (new == shownSource) return
+        loadJob?.cancel()
+        moreJob?.cancel()
+        // A load cut short here starts again when this source is shown next.
+        saved[shownSource] = Snapshot(posts, cursor, hasMore, if (status == Status.Loading) Status.Idle else status, loadedSource)
+        shownSource = new
+        val snapshot = saved[new]
+        posts = snapshot?.posts ?: emptyList()
+        cursor = snapshot?.cursor
+        hasMore = snapshot?.hasMore ?: true
+        status = snapshot?.status ?: Status.Idle
+        loadedSource = snapshot?.loadedSource
+    }
+
+    /** Catches up when sign-in changed which source applies. */
+    private fun syncSource() {
+        if (shownSource != source) show(source)
     }
 
     /** First load, or pull to refresh. Keeps the old posts on screen if it fails. */
     suspend fun refresh() {
-        val requested = source
+        val requested = shownSource
         if (posts.isEmpty() || loadedSource != requested) status = Status.Loading
         isRefreshing = true
         try {
-            val page = fetch(null)
-            if (requested != source) return
+            val page = fetch(requested, null)
+            // The user switched sources while this loaded.
+            if (requested != shownSource) return
             posts = page.posts.distinctBy { it.id }
             cursor = page.cursor
             hasMore = page.cursor != null
             loadedSource = requested
             status = Status.Loaded
         } catch (e: CancellationException) {
-            if (posts.isEmpty()) status = Status.Idle
+            if (requested == shownSource && posts.isEmpty()) status = Status.Idle
             throw e
         } catch (e: Throwable) {
+            if (requested == FeedSource.FOLLOWING && !account.isSignedIn) {
+                // The sign-in expired while loading; show What's Hot instead.
+                forgetFollowing()
+                scope.launch(Dispatchers.Main) { loadIfNeeded() }
+                return
+            }
+            if (requested != shownSource) return
             if (posts.isEmpty() || loadedSource != requested) {
                 posts = emptyList()
                 status = Status.Failed(e.userMessage("Couldn't load the feed."))
@@ -140,12 +192,15 @@ class FeedViewModel(
     }
 
     fun refreshAsync() {
+        // Before launching: switching sources cancels the load in flight.
+        syncSource()
         loadJob?.cancel()
         loadJob = scope.launch { refresh() }
     }
 
     /** Loads on first show, and again if sign-in changed which feed applies. */
     fun loadIfNeeded() {
+        syncSource()
         if (status == Status.Idle || (status == Status.Loaded && loadedSource != source)) refreshAsync()
     }
 
@@ -153,17 +208,17 @@ class FeedViewModel(
     fun loadMore(after: FeedPost) {
         if (after.id != visiblePosts.lastOrNull()?.id || !hasMore || isLoadingMore) return
         val start = cursor ?: return
-        val requested = source
+        val requested = shownSource
         isLoadingMore = true
-        scope.launch {
+        moreJob = scope.launch {
             var next: String? = start
             try {
                 // A page can contain no image posts; skip ahead a few pages so the
                 // list doesn't stall with nothing new to trigger the next load.
                 repeat(3) {
                     val pageCursor = next ?: return@repeat
-                    val page = fetch(pageCursor)
-                    if (requested != source) return@launch
+                    val page = fetch(requested, pageCursor)
+                    if (requested != shownSource) return@launch
                     val before = posts.size
                     posts = (posts + page.posts).distinctBy { it.id }
                     next = page.cursor
@@ -189,24 +244,29 @@ class FeedViewModel(
         path = path + post
     }
 
-    suspend fun signIn(handle: String, appPassword: String) {
-        account.signIn(handle, appPassword)
+    /** After sign-in: open on the user's own feed, loaded fresh. */
+    fun showFollowing() {
         chosenSource = null
-        isShowingSignIn = false
-        posts = emptyList()
-        status = Status.Idle
-        refreshAsync()
+        path = emptyList()
+        if (shownSource == FeedSource.FOLLOWING) {
+            // Already showing an older Following list; start it over.
+            show(FeedSource.WHATS_HOT)
+        }
+        saved.remove(FeedSource.FOLLOWING)
+        listStates[FeedSource.FOLLOWING] = LazyListState()
+        show(FeedSource.FOLLOWING)
+        loadIfNeeded()
     }
 
-    fun signOut() {
-        scope.launch {
-            account.signOut()
-            chosenSource = null
-            posts = emptyList()
-            status = Status.Idle
+    /** After sign-out: forget the timeline and go back to What's Hot where it was left. */
+    fun forgetFollowing() {
+        chosenSource = null
+        if (shownSource == FeedSource.FOLLOWING) {
             path = emptyList()
-            refreshAsync()
+            show(FeedSource.WHATS_HOT)
         }
+        saved.remove(FeedSource.FOLLOWING)
+        listStates[FeedSource.FOLLOWING] = LazyListState()
     }
 }
 

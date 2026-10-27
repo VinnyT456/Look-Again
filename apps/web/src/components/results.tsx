@@ -92,29 +92,32 @@ export function ResultsView({
 
   return (
     <div className="@container">
-      <div ref={bench} className={cx("relative grid overflow-hidden rounded-[3px] border border-rule bg-label", hasPhoto && "@3xl:grid-cols-2")}>
+      <div ref={bench} className={cx("relative grid overflow-clip rounded-[3px] border border-rule bg-label", hasPhoto && "@3xl:grid-cols-2")}>
         {hasPhoto && (
-          <div className="flex flex-col gap-4 border-b border-rule bg-well p-4 @3xl:border-r @3xl:border-b-0 @3xl:p-6">
-            {canSwitch && <Segmented ariaLabel="Light" options={lights} value={light} label={(option) => (option === "plain" ? "Plain light" : "Detector light")} onChange={setLight} className="self-start" />}
-            <ResultPhoto
-              item={item}
-              src={imageSrc}
-              light={shownLight}
-              showsHeatmap={showsHeatmap}
-              marks={marks}
-              pins={pins}
-              focused={focused}
-              onSize={setSize}
-            />
-            {shownLight === "detector" && (
-              <p className="max-w-[60ch] text-small text-muted">
-                {showsHeatmap
-                  ? "Glowing cells pushed the detector toward AI; numbers mark the strongest areas, largest first. They show influence, not proof."
-                  : marks.length > 0
-                    ? "The mark shows the area behind this demo verdict."
-                    : "The detector found no area that pushed it toward AI."}
-              </p>
-            )}
+          <div className="border-b border-rule bg-well p-4 @3xl:border-r @3xl:border-b-0 @3xl:p-6">
+            {/* Side by side, the photo stays in view while the notes beside it are read. */}
+            <div className="flex flex-col gap-4 @3xl:sticky @3xl:top-[72px] lg:@3xl:top-8">
+              {canSwitch && <Segmented ariaLabel="Light" options={lights} value={light} label={(option) => (option === "plain" ? "Plain light" : "Detector light")} onChange={setLight} className="self-start" />}
+              <ResultPhoto
+                item={item}
+                src={imageSrc}
+                light={shownLight}
+                showsHeatmap={showsHeatmap}
+                marks={marks}
+                pins={pins}
+                focused={focused}
+                onSize={setSize}
+              />
+              {shownLight === "detector" && (
+                <p className="max-w-[60ch] text-small text-muted">
+                  {showsHeatmap
+                    ? "Glowing cells pushed the detector toward AI; numbers mark the strongest areas, largest first. They show influence, not proof."
+                    : marks.length > 0
+                      ? "The mark shows the area behind this demo verdict."
+                      : "The detector found no area that pushed it toward AI."}
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -157,7 +160,12 @@ function useLeaderLine(
     };
     const observer = new ResizeObserver(draw);
     observer.observe(box);
-    return () => observer.disconnect();
+    // The photo is sticky beside the notes, so scrolling moves the pins relative to the bench.
+    window.addEventListener("scroll", draw, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", draw);
+    };
   }, [container, from, to, index]);
   return index === null ? null : line;
 }

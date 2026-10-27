@@ -14,44 +14,44 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import java.net.URLEncoder
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** A signed-in Bluesky session. Tokens only; the password is never stored. */
+/** A signed-in Bluesky account, from OAuth. Kept encrypted on this device only. */
 @Serializable
 data class BlueskySession(
     val did: String,
     val handle: String,
-    val accessJwt: String,
-    val refreshJwt: String,
-    /** The user's PDS, where their timeline is read from. */
-    val service: String,
-)
-
-/** Sign-in failures with copy the user can act on. */
-class SignInException(message: String) : Exception(message)
+    /** The account's own server, where timeline requests go. */
+    val pds: String,
+    val issuer: String,
+    val tokenEndpoint: String,
+    val accessToken: String,
+    val refreshToken: String? = null,
+    /** Epoch milliseconds. */
+    val expiresAt: Long,
+    /** The DPoP key pair the tokens are bound to ([DPoPSigner.encoded]). */
+    val dpopKey: String,
+) {
+    /** Refresh a minute early so a request never races the expiry. */
+    fun needsRefresh(now: Long): Boolean = expiresAt - 60_000 <= now
+}
 
 /** Keeps the session encrypted with a key that never leaves the Android Keystore. */
 class SessionVault(private val prefs: SharedPreferences) {
     fun load(): BlueskySession? = try {
-        prefs.getString(KEY, null)?.let { decrypt(it) }?.let { Json.decodeFromString<BlueskySession>(it) }
+        // Sessions from the old app-password sign-in no longer decode, so they read as signed out.
+        prefs.getString(KEY, null)?.let { decrypt(it) }?.let { lenientJson.decodeFromString<BlueskySession>(it) }
     } catch (e: Exception) {
         null
     }
 
     fun save(session: BlueskySession?) {
         prefs.edit {
-            if (session == null) remove(KEY) else putString(KEY, encrypt(Json.encodeToString(BlueskySession.serializer(), session)))
+            if (session == null) remove(KEY) else putString(KEY, encrypt(lenientJson.encodeToString(BlueskySession.serializer(), session)))
         }
     }
 
@@ -90,126 +90,124 @@ class SessionVault(private val prefs: SharedPreferences) {
 }
 
 /**
- * Signs in with a Bluesky app password and reads the user's Following
- * timeline. Requests go straight to Bluesky; nothing passes through a server
- * of ours.
+ * The optional Bluesky sign-in, through Bluesky's own sign-in page (OAuth),
+ * so no password is ever typed into WildcatVerify. Only used to read the
+ * user's Following timeline; requests go straight to Bluesky.
  */
 class BlueskyAccount(
     private val vault: SessionVault?,
-    private val http: HttpSender = UrlConnectionHttpClient,
+    private val client: BlueskyOAuthClient = BlueskyOAuthClient(),
+    private val now: () -> Long = System::currentTimeMillis,
 ) {
-    var session by mutableStateOf(vault?.load())
+    sealed interface State {
+        data object SignedOut : State
+        data object SigningIn : State
+        data class SignedIn(val handle: String) : State
+    }
+
+    private var session: BlueskySession? = vault?.load()
+
+    var state by mutableStateOf<State>(session?.let { State.SignedIn(it.handle) } ?: State.SignedOut)
         private set
 
-    private val refreshLock = Mutex()
+    /** Why the last sign-in failed, or that it expired; shown once. */
+    var lastError by mutableStateOf<String?>(null)
 
-    suspend fun signIn(identifier: String, appPassword: String) {
-        val handle = identifier.trim().removePrefix("@")
-        val body = """{"identifier":${quote(handle)},"password":${quote(appPassword.trim())}}"""
-        val (status, response) = try {
-            http.send("POST", "$ENTRYWAY/xrpc/com.atproto.server.createSession", JSON_HEADERS, body.toByteArray())
+    val isSignedIn: Boolean get() = state is State.SignedIn
+    val handle: String? get() = (state as? State.SignedIn)?.handle
+
+    private val refreshLock = Mutex()
+    /** Bumped on every sign-in and sign-out, so a slow refresh can't undo either. */
+    private var generation = 0
+
+    /**
+     * Opens Bluesky's sign-in page with [authenticate] (a browser tab that
+     * returns the redirect back to the app; it gets the page and the `state`
+     * the redirect must carry) and keeps the result. `handle` is only for
+     * accounts hosted outside Bluesky.
+     */
+    suspend fun signIn(handle: String? = null, authenticate: suspend (url: String, state: String) -> String) {
+        if (state == State.SigningIn) return
+        val previous = state
+        state = State.SigningIn
+        lastError = null
+        try {
+            val pending = client.beginSignIn(handle)
+            val callback = authenticate(pending.authorizeUrl, pending.state)
+            val signedIn = client.finishSignIn(pending, callback)
+            generation++
+            update(signedIn)
+            state = State.SignedIn(signedIn.handle)
         } catch (e: CancellationException) {
+            state = previous
             throw e
         } catch (e: Exception) {
-            throw SignInException("Couldn't reach Bluesky. Check your connection and try again.")
+            state = previous
+            if ((e as? BlueskyAuthException)?.reason != BlueskyAuthException.Reason.CANCELLED) {
+                lastError = (e as? BlueskyAuthException)?.message ?: "Couldn't sign in. Please try again."
+            }
         }
-        val json = runCatching { lenientJson.parseToJsonElement(response.decodeToString()).jsonObject }.getOrNull()
-        if (status != 200 || json == null) {
-            val error = json?.get("error")?.jsonPrimitive?.content
-            throw SignInException(
-                when (error) {
-                    "AuthFactorTokenRequired" -> "Your account uses two-factor sign-in. Use an app password instead."
-                    "AuthenticationRequired" -> "That handle and app password don't match."
-                    "RateLimitExceeded" -> "Too many attempts. Wait a few minutes and try again."
-                    else -> "Couldn't sign in. Check your handle and app password."
-                },
-            )
-        }
-        update(sessionFrom(json, fallbackService = ENTRYWAY))
     }
 
-    suspend fun signOut() {
-        val current = session ?: return
+    /** Forgets the session on this device. */
+    fun signOut() {
+        generation++
         update(null)
-        // Revoke the tokens too; signing out locally works even if this fails.
-        runCatching {
-            http.send("POST", "${current.service}/xrpc/com.atproto.server.deleteSession", mapOf("Authorization" to "Bearer ${current.refreshJwt}"), null)
-        }
+        state = State.SignedOut
     }
-
-    /** Forgets the session without contacting Bluesky (Erase All Data). */
-    fun forget() = update(null)
 
     /** One page of the signed-in user's Following timeline (image posts only). */
     suspend fun timeline(cursor: String?): FeedPage {
-        var url = "/xrpc/app.bsky.feed.getTimeline?limit=${BlueskyFeedService.PAGE_SIZE}"
-        if (cursor != null) url += "&cursor=${URLEncoder.encode(cursor, "UTF-8")}"
-        val body = authorizedGet(url)
-        return try {
-            BlueskyFeedService.page(body)
-        } catch (e: Exception) {
+        var current = session ?: throw BlueskyAuthException(BlueskyAuthException.Reason.SIGNED_OUT)
+        try {
+            if (current.needsRefresh(now())) current = refreshed(current)
+            var reply = client.timeline(current, cursor)
+            if (reply.status == 401) {
+                current = refreshed(current)
+                reply = client.timeline(current, cursor)
+            }
+            if (reply.status == 401) {
+                expire()
+                throw BlueskyAuthException(BlueskyAuthException.Reason.SESSION_EXPIRED)
+            }
+            if (reply.status != 200) throw CheckException.Network
+            return BlueskyFeedService.page(reply.body)
+        } catch (e: BlueskyAuthException) {
+            // Anything but a lost sign-in reads as a network problem on the Feed.
+            if (e.reason == BlueskyAuthException.Reason.SESSION_EXPIRED) throw e
             throw CheckException.Network
-        }
-    }
-
-    private suspend fun authorizedGet(path: String, retried: Boolean = false): ByteArray {
-        val current = session ?: throw CheckException.Network
-        val (status, body) = try {
-            http.send("GET", current.service + path, mapOf("Authorization" to "Bearer ${current.accessJwt}"), null)
         } catch (e: CancellationException) {
+            throw e
+        } catch (e: CheckException) {
             throw e
         } catch (e: Exception) {
             throw CheckException.Network
         }
-        if (status == 200) return body
-        if (!retried && (status == 400 || status == 401) && body.decodeToString().contains("ExpiredToken")) {
-            refresh(current)
-            return authorizedGet(path, retried = true)
-        }
-        if (status == 401) update(null)
-        throw CheckException.Network
     }
 
-    /** Access tokens last minutes; the refresh token gets a new pair. */
-    private suspend fun refresh(stale: BlueskySession) = refreshLock.withLock {
-        if (session?.accessJwt != stale.accessJwt) return@withLock // Someone else already refreshed.
-        val (status, body) = http.send("POST", "${stale.service}/xrpc/com.atproto.server.refreshSession", mapOf("Authorization" to "Bearer ${stale.refreshJwt}"), null)
-        val json = runCatching { lenientJson.parseToJsonElement(body.decodeToString()).jsonObject }.getOrNull()
-        if (status != 200 || json == null) {
-            update(null)
-            throw CheckException.Network
+    /** One refresh at a time: refresh tokens are single-use. */
+    private suspend fun refreshed(stale: BlueskySession): BlueskySession = refreshLock.withLock {
+        val current = session ?: throw BlueskyAuthException(BlueskyAuthException.Reason.SIGNED_OUT)
+        if (current.accessToken != stale.accessToken) return@withLock current // Someone else already refreshed.
+        val started = generation
+        try {
+            val next = client.refresh(current)
+            // Signed out (or into another account) meanwhile: drop it.
+            if (generation != started) throw BlueskyAuthException(BlueskyAuthException.Reason.SIGNED_OUT)
+            next.also(::update)
+        } catch (e: BlueskyAuthException) {
+            if (e.reason == BlueskyAuthException.Reason.SESSION_EXPIRED && generation == started) expire()
+            throw e
         }
-        update(sessionFrom(json, fallbackService = stale.service))
+    }
+
+    private fun expire() {
+        signOut()
+        lastError = BlueskyAuthException.Reason.SESSION_EXPIRED.message(null)
     }
 
     private fun update(new: BlueskySession?) {
         session = new
         vault?.save(new)
-    }
-
-    companion object {
-        /** Bluesky's sign-in entryway; it hands back the account's own PDS. */
-        const val ENTRYWAY = "https://bsky.social"
-        const val APP_PASSWORDS_URL = "https://bsky.app/settings/app-passwords"
-        private val JSON_HEADERS = mapOf("Content-Type" to "application/json")
-
-        private fun quote(value: String) = Json.encodeToString(String.serializer(), value)
-
-        /** Reads tokens and the PDS endpoint from a createSession/refreshSession response. */
-        fun sessionFrom(json: JsonObject, fallbackService: String): BlueskySession {
-            val service = runCatching {
-                json["didDoc"]!!.jsonObject["service"]!!.jsonArray
-                    .map { it.jsonObject }
-                    .first { it["id"]?.jsonPrimitive?.content?.endsWith("#atproto_pds") == true }["serviceEndpoint"]!!
-                    .jsonPrimitive.content.trimEnd('/')
-            }.getOrDefault(fallbackService)
-            return BlueskySession(
-                did = json["did"]!!.jsonPrimitive.content,
-                handle = json["handle"]!!.jsonPrimitive.content,
-                accessJwt = json["accessJwt"]!!.jsonPrimitive.content,
-                refreshJwt = json["refreshJwt"]!!.jsonPrimitive.content,
-                service = service,
-            )
-        }
     }
 }

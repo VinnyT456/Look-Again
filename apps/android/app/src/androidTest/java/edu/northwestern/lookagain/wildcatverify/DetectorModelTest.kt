@@ -20,7 +20,7 @@ import kotlin.math.sqrt
  * Runs the bundled detector on the fixtures and compares with Python.
  * `TORCH_PROB` comes from the PyTorch probe (genai_plus_balance fine-tune) on the Hugging Face–preprocessed
  * fixtures (printed by ml/scripts/export/community_forensics_vit_heatmap_tflite.py);
- * `patch_map` in reference.json is from the iOS model, for a cross-platform check.
+ * `patch_map` comes from torch_reference.json, made the same way.
  */
 @RunWith(AndroidJUnit4::class)
 class DetectorModelTest {
@@ -30,8 +30,9 @@ class DetectorModelTest {
     private fun fixture(name: String): Bitmap =
         testAssets.open("fixtures/$name.png").use { BitmapFactory.decodeStream(it) }
 
+    /** PyTorch outputs for the fixtures (torch_reference.json). The iOS reference.json comes from Core ML in half precision, whose heatmaps drift from PyTorch. */
     private val reference by lazy {
-        JSONObject(testAssets.open("fixtures/reference.json").bufferedReader().readText())
+        JSONObject(testAssets.open("fixtures/torch_reference.json").bufferedReader().readText())
     }
 
     private val classifier by lazy { requireNotNull(TfliteImageClassifier.load(context)) { "Model must ship in the APK" } }
@@ -49,13 +50,13 @@ class DetectorModelTest {
         }
     }
 
-    @Test fun heatmapMatchesIos() = runTest {
+    @Test fun heatmapMatchesPython() = runTest {
         for (name in TORCH_PROB.keys) {
             val (_, heatmap) = classifier.predict(fixture(name))
             assertNotNull(heatmap)
             val expected = reference.getJSONObject(name).getJSONArray("patch_map").let { array -> List(array.length()) { array.getDouble(it) } }
             val correlation = pearson(heatmap!!.values.map { it.toDouble() }, expected)
-            assertTrue("$name heatmap correlation $correlation", correlation > 0.95)
+            assertTrue("$name heatmap correlation $correlation", correlation > 0.99)
         }
     }
 

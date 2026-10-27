@@ -53,6 +53,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import edu.northwestern.lookagain.wildcatverify.ui.about.AboutSheet
+import edu.northwestern.lookagain.wildcatverify.ui.account.SignInErrorDialog
 import edu.northwestern.lookagain.wildcatverify.ui.welcome.WaysToCheckScreen
 import androidx.activity.compose.BackHandler
 import edu.northwestern.lookagain.wildcatverify.ui.check.CheckScreen
@@ -134,6 +135,7 @@ fun RootScreen(app: AppViewModel) {
         if (app.isShowingAbout) {
             AboutSheet(onDismiss = { app.isShowingAbout = false })
         }
+        SignInErrorDialog(app)
     }
 }
 

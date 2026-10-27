@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -41,10 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -54,7 +53,7 @@ import edu.northwestern.lookagain.wildcatverify.ui.theme.colors
  * Controls drawn the way the iOS app shows them, so both apps look alike.
  */
 
-/** iOS's green on/off switch (51 × 31). The row around it handles the tap. */
+/** iOS's green on/off switch (51 × 31). The row around it handles the tap and says On or Off ([ToggleRow]). */
 @Composable
 fun IosSwitch(checked: Boolean, modifier: Modifier = Modifier) {
     val track by animateColorAsState(if (checked) Color(0xFF34C759) else colors.pill, tween(200), label = "track")
@@ -63,8 +62,7 @@ fun IosSwitch(checked: Boolean, modifier: Modifier = Modifier) {
         modifier
             .size(51.dp, 31.dp)
             .clip(CircleShape)
-            .background(track)
-            .semantics { stateDescription = if (checked) "On" else "Off" },
+            .background(track),
     ) {
         Box(
             Modifier
@@ -84,10 +82,13 @@ fun <T> IosSegmentedControl(
     label: (T) -> String,
     onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    /** What the choice is about, read before the segments (like a SwiftUI Picker's title). */
+    contentDescription: String? = null,
 ) {
     val index = options.indexOf(selected).coerceAtLeast(0)
     BoxWithConstraints(
         modifier
+            .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
             .fillMaxWidth()
             .height(34.dp)
             .clip(RoundedCornerShape(9.dp))
@@ -104,18 +105,19 @@ fun <T> IosSegmentedControl(
                 .shadow(1.dp, RoundedCornerShape(7.dp))
                 .background(if (colors.dark) Color(0xFF636366) else Color.White, RoundedCornerShape(7.dp)),
         )
-        Row(Modifier.fillMaxWidth().fillMaxHeight()) {
+        Row(Modifier.fillMaxWidth().fillMaxHeight().selectableGroup()) {
             options.forEach { option ->
                 val isSelected = option == selected
                 Box(
                     Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clickable(remember { MutableInteractionSource() }, indication = null) { onSelect(option) }
-                        .semantics {
-                            role = Role.Tab
-                            this.selected = isSelected
-                        },
+                        .selectable(
+                            selected = isSelected,
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            role = Role.Tab,
+                        ) { onSelect(option) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

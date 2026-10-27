@@ -35,9 +35,10 @@ Edit `community_forensics_finetune.json`:
 | `run_name` | Output subdirectory name |
 | `mode` | `probe` (default), `backbone`, or `all` |
 | `mix_base_feature_caches` | When true, probe training also mixes in existing universal feature caches (Deepfake, SDFVD, DF40, 140k) if present |
-| `logistic_c` | Rich linear probe regularization (default `0.01`) |
+| `logistic_c` | Rich linear probe regularization (default `0.01`; try `0.05` for weaker L2) |
 | `train_val_fraction` | Fraction of each class used for **training** (rest is validation metrics) |
 | `backbone.*` | Optional ViT fine-tune before probe (`train_classifier_only` default true) |
+| `backbone.unfreeze_encoder_layers` | With `train_classifier_only: true`, also train the last N ViT encoder blocks (e.g. `2`) |
 
 ## Commands
 
@@ -74,6 +75,35 @@ deletes images, and appends to `cache/community-forensics-vit/finetune_<run>_sof
 Default `--parquet-shards` walks one HF parquet file at a time (long runs). Baseline probe snapshot:
 `checkpoints/community_forensics_finetune/snapshots/so_fake_probe_baseline/`. Long run example:
 `--run-name so_fake_probe_v2 --clear-accum --chunks 30`.
+
+**So-Fake three-way (real / synthetic / tampered):** separate checkpoint tree, no binary
+`mix_base`. Streams **500 + 500 + 500** per chunk by default (`full_synthetic` → synthetic,
+`tampered` → tampered, `real` → real). Outputs under
+`checkpoints/community_forensics_sofake_tertiary/<run_name>/`.
+
+```bash
+cd ml
+uv run python -m scripts.train.community_forensics_vit_finetune_sofake_tertiary
+uv run python -m scripts.train.community_forensics_vit_finetune_sofake_tertiary --chunks 30 --clear-accum
+```
+
+Local inference:
+
+```bash
+cd ml
+uv run python -m scripts.predict.community_forensics_vit_predict_image_tertiary path/to/photo.jpg
+uv run python -m scripts.predict.community_forensics_vit_predict_image_tertiary --run-name so_fake_tertiary_probe --json photo.jpg
+```
+
+**Track misses** (binary vs tertiary on your Bluesky failures): see [eval/misses/README.md](../eval/misses/README.md).
+
+```bash
+cd ml
+cp eval/misses/manifest.example.json data/eval_misses/manifest.json   # edit paths
+uv run python -m scripts.eval.community_forensics_vit_eval_misses --manifest data/eval_misses/manifest.json
+```
+
+Mobile export for the 3-class probe is not wired yet; compare tampered recall vs the binary probe on your own images.
 
 Use `--skip-download` after the first materialization. Legacy CNN/audio trainers live under `old_models/`.
 

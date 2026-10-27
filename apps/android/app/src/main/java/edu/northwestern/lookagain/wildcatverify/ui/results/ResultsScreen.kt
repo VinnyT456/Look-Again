@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.runtime.mutableIntStateOf
@@ -130,10 +131,11 @@ fun ResultsScreen(
     // A multi-image post shows every image; it opens on the most suspicious one, the case itself.
     val postImages = lead.postImages?.takeIf { it.size > 1 }.orEmpty()
     var selection by remember(lead.id) { mutableIntStateOf(postImages.indexOfFirst { it.id == lead.id }.coerceAtLeast(0)) }
-    val item = postImages.getOrNull(selection) ?: lead
     val images = LocalImages.current
-    // Owns its view model so the Photo/Highlight choice survives recomposition.
-    val viewModel = remember(item.id) { CheckResultsViewModel(item, images) }
+    // One view model per image, so each keeps its own Photo/Highlight choice across recomposition and switching.
+    val viewModels = remember(lead.id) { postImages.ifEmpty { listOf(lead) }.map { CheckResultsViewModel(it, images) } }
+    val viewModel = viewModels[selection.coerceIn(viewModels.indices)]
+    val item = viewModel.item
     viewModel.heatmapEnabled = LocalHeatmapEnabled.current
     LaunchedEffect(item.id) { viewModel.loadImage() }
 
@@ -173,7 +175,7 @@ fun ResultsScreen(
             if (item.isDemo) {
                 item(key = "demo") {
                     Section {
-                        BulletRow("Demo result. This verdict isn't from the WildcatVerify detection model, so don't rely on it.", Icons.Outlined.Science)
+                        BulletRow("Demo result. This verdict isn't from the WildcatVerify detection model yet, so don't rely on it.", Icons.Outlined.Science)
                     }
                 }
             }
@@ -294,7 +296,12 @@ private fun PostImageStrip(images: List<VerificationCase>, selection: Int, onSel
                         RoundedCornerShape(Metrics.thumbnailRadius),
                     ),
                 ) { CaseThumbnail(image, size = 64.dp) }
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                // The tile's description already says the verdict; don't read the short label too.
+                Row(
+                    Modifier.clearAndSetSemantics { },
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Icon(image.verdict.icon, contentDescription = null, tint = image.verdict.textColor, modifier = Modifier.size(13.dp))
                     Text(image.verdict.shortLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = image.verdict.textColor)
                 }
@@ -368,7 +375,8 @@ private fun SourceSection(item: VerificationCase, inShareSheet: Boolean) {
             ValueRow("Photo", "Not included")
         }
         val postUrl = item.postUrl
-        if (postUrl != null) {
+        // Like the iOS share extension, the share screen stays a quick look and doesn't send you elsewhere.
+        if (postUrl != null && !inShareSheet) {
             RowDivider(IconRowInset)
             LabelRow("Open on Bluesky", Icons.AutoMirrored.Outlined.OpenInNew, titleColor = MaterialTheme.colorScheme.primary) {
                 runCatching { uriHandler.openUri(postUrl) }
@@ -539,6 +547,8 @@ fun AnalyzingView(image: Bitmap?, onCancel: () -> Unit, modifier: Modifier = Mod
         modifier
             .fillMaxSize()
             .background(colors.groupedBackground)
+            // Scrolls so Cancel stays reachable at large text sizes.
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
             .padding(top = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

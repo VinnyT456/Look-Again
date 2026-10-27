@@ -8,10 +8,12 @@ import edu.northwestern.lookagain.wildcatverify.data.ImageRepository
 import edu.northwestern.lookagain.wildcatverify.data.ImageClassifier
 import edu.northwestern.lookagain.wildcatverify.model.ClassificationResult
 import edu.northwestern.lookagain.wildcatverify.model.FeedPost
+import edu.northwestern.lookagain.wildcatverify.model.SampleData
 import edu.northwestern.lookagain.wildcatverify.model.VerdictType
 import edu.northwestern.lookagain.wildcatverify.viewmodel.CheckViewModel
 import edu.northwestern.lookagain.wildcatverify.viewmodel.FeedAutoChecker
 import edu.northwestern.lookagain.wildcatverify.viewmodel.FeedVerdict
+import edu.northwestern.lookagain.wildcatverify.viewmodel.HistoryViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -143,5 +145,19 @@ class FeedAutoCheckTest {
     @Test fun confidenceNeverReadsAsCertain() {
         assertEquals(99, CheckPipeline.displayConfidence(0.999))
         assertEquals(0, CheckPipeline.displayConfidence(-1.0))
+    }
+}
+
+class HistorySearchTest {
+    @Test fun searchIgnoresCaseAndAccents() {
+        val store = HistoryStore(ImageRepository())
+        store.record(SampleData.monorail.copy(id = "cafe", title = "Café on the lakefront"))
+        store.record(SampleData.monorail.copy(id = "other", title = "Storm over the lake"))
+        val history = HistoryViewModel(store)
+
+        history.searchQuery = "CAFE"
+        assertEquals(listOf("cafe"), history.visibleCases.map { it.id })
+        history.searchQuery = "café"
+        assertEquals(listOf("cafe"), history.visibleCases.map { it.id })
     }
 }

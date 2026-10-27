@@ -23,16 +23,23 @@ fun interface HttpClient {
     suspend fun get(url: String): Pair<Int, ByteArray>
 }
 
+/** A response: status, body, and the headers signed-in calls need (DPoP nonces). */
+class HttpReply(val status: Int, val body: ByteArray, private val headers: Map<String, String> = emptyMap()) {
+    /** Case-insensitive, as HTTP header names are. */
+    fun header(name: String): String? = headers.entries.firstOrNull { it.key.equals(name, ignoreCase = true) }?.value
+}
+
 /** Any HTTP request, for signed-in calls. Swappable in tests. */
 fun interface HttpSender {
-    suspend fun send(method: String, url: String, headers: Map<String, String>, body: ByteArray?): Pair<Int, ByteArray>
+    /** @throws IOException when the server can't be reached. */
+    suspend fun send(method: String, url: String, headers: Map<String, String>, body: ByteArray?): HttpReply
 }
 
 /** HTTPS with `HttpURLConnection`, off the main thread. */
 object UrlConnectionHttpClient : HttpClient, HttpSender {
-    override suspend fun get(url: String): Pair<Int, ByteArray> = send("GET", url, emptyMap(), null)
+    override suspend fun get(url: String): Pair<Int, ByteArray> = send("GET", url, emptyMap(), null).let { it.status to it.body }
 
-    override suspend fun send(method: String, url: String, headers: Map<String, String>, body: ByteArray?): Pair<Int, ByteArray> = withContext(Dispatchers.IO) {
+    override suspend fun send(method: String, url: String, headers: Map<String, String>, body: ByteArray?): HttpReply = withContext(Dispatchers.IO) {
         val connection = URL(url).openConnection() as HttpURLConnection
         try {
             connection.connectTimeout = 15_000
@@ -47,7 +54,12 @@ object UrlConnectionHttpClient : HttpClient, HttpSender {
             val status = connection.responseCode
             ensureActive()
             val stream = if (status in 200..299) connection.inputStream else connection.errorStream
-            status to (stream?.use { it.readBytes() } ?: ByteArray(0))
+            val bytes = stream?.use { it.readBytes() } ?: ByteArray(0)
+            // The status line comes back under a null key.
+            val replyHeaders = connection.headerFields.entries
+                .filter { it.key != null && it.value.isNotEmpty() }
+                .associate { it.key to it.value.joinToString(", ") }
+            HttpReply(status, bytes, replyHeaders)
         } finally {
             connection.disconnect()
         }
@@ -107,12 +119,23 @@ class BlueskyService(private val http: HttpClient = UrlConnectionHttpClient) {
                 "?uri=${encode("at://$actor/app.bsky.feed.post/$rkey")}&depth=0&parentHeight=0"
 
         /**
+         * A post link anywhere in text, with or without a scheme. It must start a
+         * word, so "notbsky.app" doesn't match, and stops before punctuation that
+         * can't be part of a record key ("…/post/b!" or "(…/post/b).").
+         */
+        private val POST_LINK = Regex(
+            """(?<![\w.-])(?:https?://)?(?:[a-z0-9-]+\.)*bsky\.app/profile/[^\s/]+/post/[A-Za-z0-9._:~-]+""",
+            RegexOption.IGNORE_CASE,
+        )
+
+        /**
          * Finds the first Bluesky post link in shared text, such as "Look at this
-         * https://bsky.app/profile/a/post/b". Returns null when there isn't one.
+         * https://bsky.app/profile/a/post/b" or "look:https://bsky.app/profile/a/post/b!".
+         * Returns null when there isn't one.
          */
         fun linkIn(text: String): String? =
-            text.split(Regex("\\s+"))
-                .map { it.trim('<', '>', '(', ')', '"', '\'', ',', '.') }
+            POST_LINK.findAll(text)
+                .map { it.value.trimEnd('.', ':', '~', '-') }
                 .firstOrNull { parse(it) != null }
     }
 

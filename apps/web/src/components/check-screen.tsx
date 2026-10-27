@@ -176,7 +176,7 @@ function Intake({ onUpload }: { onUpload: () => void }) {
       </div>
 
       <div className="p-4 sm:p-6">
-        <div className="grid min-h-[min(320px,42dvh)] place-items-center bg-well px-6 py-12">
+        <div className="grid min-h-[min(320px,42dvh)] place-items-center bg-well px-6 py-12 pointer-coarse:min-h-0 pointer-coarse:py-6">
           <div className="relative flex max-w-[46ch] flex-col items-center gap-3 px-8 py-6 text-center">
             <CropMarks detector={false} />
             <p className="font-bold">

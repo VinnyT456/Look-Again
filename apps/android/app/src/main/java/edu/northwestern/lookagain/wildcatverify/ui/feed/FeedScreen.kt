@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -72,7 +71,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import edu.northwestern.lookagain.wildcatverify.data.BlueskyAccount
+import edu.northwestern.lookagain.wildcatverify.ui.account.FeedSignInCard
 import edu.northwestern.lookagain.wildcatverify.model.FeedPost
 import edu.northwestern.lookagain.wildcatverify.ui.results.AnalyzingView
 import edu.northwestern.lookagain.wildcatverify.ui.results.ResultsScreen
@@ -86,6 +85,7 @@ import edu.northwestern.lookagain.wildcatverify.ui.shared.PushedTopBar
 import edu.northwestern.lookagain.wildcatverify.ui.shared.RemoteImage
 import edu.northwestern.lookagain.wildcatverify.ui.shared.Section
 import edu.northwestern.lookagain.wildcatverify.ui.shared.SectionGutter
+import edu.northwestern.lookagain.wildcatverify.ui.shared.SectionHeader
 import edu.northwestern.lookagain.wildcatverify.ui.theme.Metrics
 import edu.northwestern.lookagain.wildcatverify.ui.theme.colors
 import edu.northwestern.lookagain.wildcatverify.viewmodel.AppViewModel
@@ -124,6 +124,7 @@ fun FeedScreen(app: AppViewModel) {
                         label = { it.title },
                         onSelect = viewModel::select,
                         modifier = Modifier.widthIn(max = 720.dp).padding(horizontal = SectionGutter, vertical = 4.dp),
+                        contentDescription = "Feed",
                     )
                 }
                 Box(Modifier.fillMaxSize()) {
@@ -147,15 +148,14 @@ fun FeedScreen(app: AppViewModel) {
             }
         }
     })
-
-    if (viewModel.isShowingSignIn) SignInSheet(viewModel)
 }
 
 /** The scrolling list of feed posts, with pull to refresh, endless paging and labels. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeedList(app: AppViewModel, viewModel: FeedViewModel) {
-    val listState = rememberLazyListState()
+    // Kept by the view model so each source's place survives switching sources, opening a post and changing tabs.
+    val listState = viewModel.listState(viewModel.source)
     // Posts are checked as they scroll into view, top to bottom; ones that scroll away before their turn are skipped.
     LaunchedEffect(listState, viewModel.visiblePosts, app.settings.autoCheckFeed) {
         var onScreen = emptyList<FeedPost>()
@@ -171,12 +171,15 @@ private fun FeedList(app: AppViewModel, viewModel: FeedViewModel) {
 
     PullToRefreshBox(isRefreshing = viewModel.isRefreshing, onRefresh = viewModel::refreshAsync) {
         LazyColumn(Modifier.fillMaxSize(), state = listState, horizontalAlignment = Alignment.CenterHorizontally) {
-            if (!viewModel.isSignedIn) {
+            if (viewModel.source == FeedSource.WHATS_HOT && !viewModel.isSignedIn && !app.settings.feedSignInDismissed) {
                 item(key = "sign-in") {
-                    Section(footer = "See photos from people you follow, labelled as you scroll.") {
-                        LabelRow("Sign in to Bluesky", Icons.AutoMirrored.Outlined.Login, titleColor = MaterialTheme.colorScheme.primary) {
-                            viewModel.isShowingSignIn = true
-                        }
+                    FeedSignInCard(app, onDismiss = { app.settings.feedSignInDismissed = true })
+                }
+            }
+            if (viewModel.visiblePosts.isNotEmpty()) {
+                item(key = "header") {
+                    Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = SectionGutter).padding(top = 12.dp)) {
+                        SectionHeader(if (viewModel.source == FeedSource.FOLLOWING) "Posts you follow" else "Trending on Bluesky")
                     }
                 }
             }
@@ -292,7 +295,12 @@ private fun FeedPostRow(post: FeedPost, verdict: FeedVerdict?, onClick: () -> Un
     // Previews are at most square so tall images don't fill the screen; the check itself always uses the full image.
     val ratio = (post.aspectRatio ?: (4.0 / 3.0)).coerceIn(1.0, 2.0).toFloat()
     val relative = remember(post.postedAt) {
-        post.postedAt?.let { DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString() }
+        post.postedAt?.let {
+            val now = System.currentTimeMillis()
+            // Under a minute reads "now", like iOS, rather than "0 minutes ago".
+            if (now - it < DateUtils.MINUTE_IN_MILLIS) "now"
+            else DateUtils.getRelativeTimeSpanString(it, now, DateUtils.MINUTE_IN_MILLIS).toString()
+        }
     }
     Column(
         Modifier
@@ -361,7 +369,8 @@ private fun FeedCheckScreen(app: AppViewModel, post: FeedPost, onBack: () -> Uni
         is ShareViewModel.Phase.Result -> ResultsScreen(phase.item, onBack = onBack, onCheckAnother = null)
         is ShareViewModel.Phase.Failed -> Scaffold(
             containerColor = colors.groupedBackground,
-            topBar = { PushedTopBar("Checking", onBack) },
+            // No title here, as on iOS: "Checking" is only shown while the check runs.
+            topBar = { PushedTopBar("", onBack) },
         ) { padding ->
             val scope = rememberCoroutineScope()
             ContentUnavailable(
@@ -378,86 +387,3 @@ private fun FeedCheckScreen(app: AppViewModel, post: FeedPost, onBack: () -> Uni
     }
 }
 
-/** Sign in with a Bluesky app password, so the Feed can show the user's Following timeline. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SignInSheet(viewModel: FeedViewModel) {
-    val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
-    var handle by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var error by remember { mutableStateOf<String?>(null) }
-    var working by remember { mutableStateOf(false) }
-    val fieldColors = TextFieldDefaults.colors(
-        focusedContainerColor = colors.fill,
-        unfocusedContainerColor = colors.fill,
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent,
-    )
-
-    ModalBottomSheet(
-        onDismissRequest = { viewModel.isShowingSignIn = false },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = colors.groupedBackground,
-    ) {
-        Column(
-            Modifier.padding(horizontal = 20.dp).padding(bottom = 24.dp).navigationBarsPadding().imePadding(),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text("Sign in to Bluesky", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text(
-                "Use an app password, not your main password. WildcatVerify keeps only a sign-in token, encrypted on this device, and only reads your timeline.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.secondaryText,
-            )
-            TextField(
-                value = handle,
-                onValueChange = { handle = it },
-                placeholder = { Text("you.bsky.social") },
-                label = { Text("Handle or email") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next, autoCorrectEnabled = false),
-                shape = RoundedCornerShape(Metrics.fieldRadius),
-                colors = fieldColors,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = { Text("xxxx-xxxx-xxxx-xxxx") },
-                label = { Text("App password") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done, autoCorrectEnabled = false),
-                shape = RoundedCornerShape(Metrics.fieldRadius),
-                colors = fieldColors,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Text(
-                "Create an app password in Bluesky →",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { runCatching { uriHandler.openUri(BlueskyAccount.APP_PASSWORDS_URL) } },
-            )
-            error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-            PrimaryButton(
-                if (working) "Signing In…" else "Sign In",
-                enabled = !working && handle.isNotBlank() && password.isNotBlank(),
-                onClick = {
-                    working = true
-                    error = null
-                    scope.launch {
-                        try {
-                            viewModel.signIn(handle, password)
-                        } catch (e: Exception) {
-                            error = e.message ?: "Couldn't sign in."
-                        } finally {
-                            working = false
-                        }
-                    }
-                },
-            )
-        }
-    }
-}

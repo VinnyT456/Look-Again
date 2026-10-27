@@ -488,7 +488,7 @@
 		0DCDD878CDFE8033D6D07D5F /* ShareError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareError.swift; sourceTree = "<group>"; };
 		0F6F4E238D7DE87B7B7A014C /* SettingsSiriSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSiriSection.swift; sourceTree = "<group>"; };
 		1193A8B891BD8CF3D7F52E3C /* CheckPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckPage.swift; sourceTree = "<group>"; };
-		11E906C2198FBD4CCE653F70 /* WildcatVerifyAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = WildcatVerifyAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		11E906C2198FBD4CCE653F70 /* WildcatVerifyAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WildcatVerifyAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		12288B5D75C8BE7B65F5F3B5 /* SiriCheckError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiriCheckError.swift; sourceTree = "<group>"; };
 		13D882DF5393539585B89DBA /* HistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTests.swift; sourceTree = "<group>"; };
 		14098E1A9CBBCA4DB8B9DBE0 /* AppLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLinks.swift; sourceTree = "<group>"; };
@@ -534,7 +534,7 @@
 		429CBACFAE83838DE29CE9A4 /* WildcatVerifyControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WildcatVerifyControls.swift; sourceTree = "<group>"; };
 		43DFAE4A6A19D294F39B164D /* ImageCropper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCropper.swift; sourceTree = "<group>"; };
 		450A5DB543D650FA8BB91571 /* FeedPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPost.swift; sourceTree = "<group>"; };
-		47B2D2B5E722A5482BD879C2 /* WildcatVerifyShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = WildcatVerifyShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		47B2D2B5E722A5482BD879C2 /* WildcatVerifyShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WildcatVerifyShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		47C82170D30CBE72892A7F6F /* AboutRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutRoute.swift; sourceTree = "<group>"; };
 		48DFADACF02F637E50A570FD /* SettingsAndPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAndPersistenceTests.swift; sourceTree = "<group>"; };
 		4BC18CE8D29DEC7C54A8C1FC /* FeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedTests.swift; sourceTree = "<group>"; };
@@ -550,7 +550,7 @@
 		5BC94325B443895AC62F0EB2 /* MascotReaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotReaction.swift; sourceTree = "<group>"; };
 		5C0279C8E9ADDEE1B42A36BB /* SettingsDetectorSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDetectorSection.swift; sourceTree = "<group>"; };
 		5D0D342C9191567FE776EB92 /* ClueGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClueGuideView.swift; sourceTree = "<group>"; };
-		5E4D7454DC5BF6BF8B4D466C /* WildcatVerifyControls.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = WildcatVerifyControls.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E4D7454DC5BF6BF8B4D466C /* WildcatVerifyControls.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WildcatVerifyControls.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E589624129FAE08B9E9D47B /* ScreenshotCropViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCropViewModel.swift; sourceTree = "<group>"; };
 		5E5BD086175C89E592D2FC7E /* HeatmapCanvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapCanvas.swift; sourceTree = "<group>"; };
 		5F230C591F8E7F5F4644D5B4 /* ResultPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultPhoto.swift; sourceTree = "<group>"; };
@@ -567,7 +567,7 @@
 		653E40A0F92A921ECF83D149 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		672426555BBD63E93CA74516 /* PracticeSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeSummaryView.swift; sourceTree = "<group>"; };
 		674529B19A5C53FB5B1DB5D8 /* CheckPostControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckPostControl.swift; sourceTree = "<group>"; };
-		67F096B1BAACE15652131313 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		67F096B1BAACE15652131313 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		6914015EB0DF67ECBECD5F9B /* CheckLinkTitle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckLinkTitle.swift; sourceTree = "<group>"; };
 		693E015C6A7E8E7660BD7E8D /* AppDeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDeepLink.swift; sourceTree = "<group>"; };
 		6A359AB74A3E551D1A77FB54 /* BlueskyThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyThread.swift; sourceTree = "<group>"; };
@@ -588,7 +588,7 @@
 		80EABE7460B486D971FF2085 /* SettingsRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRoute.swift; sourceTree = "<group>"; };
 		8204BC54B5497B7074735BD8 /* FeedVerdictLine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedVerdictLine.swift; sourceTree = "<group>"; };
 		84B373EBBBDF23F59292CE25 /* PhotoAreaFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoAreaFinder.swift; sourceTree = "<group>"; };
-		864B01AC426CE64E786D1B95 /* WildcatVerify.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WildcatVerify.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		864B01AC426CE64E786D1B95 /* WildcatVerify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildcatVerify.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87AC80C89170EB13B32D2A21 /* NoPhotoPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoPhotoPlaceholder.swift; sourceTree = "<group>"; };
 		87FB060937CBB8EAF6A542BF /* FeedPostMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPostMenu.swift; sourceTree = "<group>"; };
 		8A506312747E2705020ECBE7 /* SimplerFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimplerFlowTests.swift; sourceTree = "<group>"; };
@@ -607,7 +607,7 @@
 		974C1C6D57E74621DA2C46CD /* DPoPNonceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DPoPNonceStore.swift; sourceTree = "<group>"; };
 		979939922BD594FC67B488F8 /* CheckCopiedLinkControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckCopiedLinkControl.swift; sourceTree = "<group>"; };
 		99B9170FBAE144154DC3FE06 /* DetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectorTests.swift; sourceTree = "<group>"; };
-		9B7BAAE1B4112BAC8D241771 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		9B7BAAE1B4112BAC8D241771 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9CA6B3C5E32EEC20DED1FE84 /* HeatmapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapTests.swift; sourceTree = "<group>"; };
 		9D403FD3B3F09111275B5A8F /* PatchHeatmap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchHeatmap.swift; sourceTree = "<group>"; };
 		9E6B51FA19581CE4C51EC3DA /* FeedPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedPage.swift; sourceTree = "<group>"; };
@@ -628,15 +628,15 @@
 		A879481BB47155DE11779D1A /* VerificationCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationCase.swift; sourceTree = "<group>"; };
 		AA713E3C30CD3C0CC91E2DDD /* VisualCheckEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualCheckEntity.swift; sourceTree = "<group>"; };
 		AC0CA73FE26567E3E58AE7E9 /* CompactLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactLabelStyle.swift; sourceTree = "<group>"; };
-		AD2528F694FD48567C80588A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AD2528F694FD48567C80588A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AF0CF46647CAE4D3EEEE3258 /* SettingsAboutSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAboutSection.swift; sourceTree = "<group>"; };
 		AFBA5725641FF491572282F3 /* FeedList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedList.swift; sourceTree = "<group>"; };
-		B1914F70F4997F346207AF23 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		B1914F70F4997F346207AF23 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B29F59FF2290FDF4F2807F82 /* OrUploadDivider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrUploadDivider.swift; sourceTree = "<group>"; };
 		B38EF2A9F02B5CA702EB79A3 /* CaseThumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseThumbnail.swift; sourceTree = "<group>"; };
 		B49C8F0C1B504EAC338F588E /* VerdictType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictType.swift; sourceTree = "<group>"; };
 		B4F60FCA3E6828BF8A6F7B29 /* BlueskyOAuthConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyOAuthConfig.swift; sourceTree = "<group>"; };
-		B6E5BBEACBC048D93CB7B3E9 /* WildcatVerifyTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WildcatVerifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6E5BBEACBC048D93CB7B3E9 /* WildcatVerifyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WildcatVerifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B752C217EE33EBE3B74732FD /* WaysToCheckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaysToCheckView.swift; sourceTree = "<group>"; };
 		B870891FE284C77E1DD6A298 /* FeedCheckScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedCheckScreen.swift; sourceTree = "<group>"; };
 		B932D81A5D393877A3CCC85E /* PrimaryButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryButtonStyle.swift; sourceTree = "<group>"; };
@@ -686,7 +686,7 @@
 		E6DE569E2ABF99432315913F /* ResultsAndAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsAndAppTests.swift; sourceTree = "<group>"; };
 		E73B1D656089552FEF1A2EE7 /* SettingsPreferencesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreferencesSection.swift; sourceTree = "<group>"; };
 		EC4220AD12CB0D15548F4420 /* TabEntrance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabEntrance.swift; sourceTree = "<group>"; };
-		ED29C418DB3A5E52AAF761E0 /* WildcatDetector.mlpackage */ = {isa = PBXFileReference; path = WildcatDetector.mlpackage; sourceTree = "<group>"; };
+		ED29C418DB3A5E52AAF761E0 /* WildcatDetector.mlpackage */ = {isa = PBXFileReference; lastKnownFileType = folder.mlpackage; path = WildcatDetector.mlpackage; sourceTree = "<group>"; };
 		ED579933E0C11FC1CD3252D6 /* ShareInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareInput.swift; sourceTree = "<group>"; };
 		F0A520DA5CC295F07B9829D8 /* BlueskyError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueskyError.swift; sourceTree = "<group>"; };
 		F0B85BD758DAE88FECFFA51B /* VerdictFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictFilter.swift; sourceTree = "<group>"; };
@@ -1931,6 +1931,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WildcatVerify/Info.plist;
@@ -1957,6 +1958,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = WildcatVerifyAction/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1977,6 +1979,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = WildcatVerifyShare/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2015,6 +2018,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WildcatVerify/Info.plist;
@@ -2037,6 +2041,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WildcatVerifyControls/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2122,6 +2127,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = WildcatVerifyShare/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2139,6 +2145,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WildcatVerifyControls/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2214,6 +2221,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2231,6 +2239,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2252,6 +2261,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = WildcatVerifyAction/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

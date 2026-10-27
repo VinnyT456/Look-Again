@@ -2,6 +2,7 @@ package edu.northwestern.lookagain.wildcatverify.ui.shared
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -198,7 +199,8 @@ fun LinkRow(title: String, url: String, icon: ImageVector? = null) {
 
 @Composable
 fun ToggleRow(title: String, icon: ImageVector, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    ListRow(onClick = { onCheckedChange(!checked) }) {
+    // A switch to TalkBack ("Haptics, On, Switch"), like an iOS Toggle; the whole row flips it.
+    ListRow(Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         IosSwitch(checked)

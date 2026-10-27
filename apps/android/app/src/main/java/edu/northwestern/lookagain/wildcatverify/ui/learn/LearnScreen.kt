@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -15,6 +16,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -25,6 +27,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -35,6 +38,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,12 +69,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -78,14 +87,17 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.expand
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -119,6 +131,7 @@ import edu.northwestern.lookagain.wildcatverify.viewmodel.LearnRoute
 import edu.northwestern.lookagain.wildcatverify.viewmodel.LearnViewModel
 import edu.northwestern.lookagain.wildcatverify.viewmodel.PracticeViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** Learn to spot fakes: a Look Again round played in place, and the clue guide. */
 @Composable
@@ -139,16 +152,29 @@ fun LearnScreen(app: AppViewModel) {
 private fun LearnRoot(app: AppViewModel) {
     val viewModel = app.learn
     val practice = viewModel.practice
-    val scroll = rememberScrollState()
+    // Kept on the view model: this screen leaves composition while the Clue Guide is pushed.
+    val scroll = viewModel.scroll
     val haptics = LocalHapticFeedback.current
     val hapticsEnabled = LocalHapticsEnabled.current
+    val answers = remember { BringIntoViewRequester() }
 
-    // A new post starts at the top of the card.
-    LaunchedEffect(practice.index) { if (practice.index > 0) scroll.animateScrollTo(0) }
+    // A new post, or a new round, starts at the top of the card.
+    val position = practice.roundNumber to practice.index
+    LaunchedEffect(position) {
+        val previous = viewModel.shownPosition
+        viewModel.shownPosition = position
+        if (previous != null && previous != position) scroll.animateScrollTo(0)
+    }
+    // Once per answer, not again when coming back to the tab.
     LaunchedEffect(practice.answerCount) {
-        if (practice.answerCount > 0 && hapticsEnabled) {
+        if (practice.answerCount <= viewModel.handledAnswerCount) return@LaunchedEffect
+        viewModel.handledAnswerCount = practice.answerCount
+        if (hapticsEnabled) {
             haptics.performHapticFeedback(if (practice.lastAnswerWasCorrect) HapticFeedbackType.Confirm else HapticFeedbackType.Reject)
         }
+        // Bring the answers and the result into view once they've laid out.
+        delay(100)
+        answers.bringIntoView()
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -167,7 +193,7 @@ private fun LearnRoot(app: AppViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Column(Modifier.widthIn(max = 640.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(32.dp)) {
-                PracticeRoundCard(viewModel)
+                PracticeRoundCard(viewModel, answers)
                 ClueIndex(viewModel.clueGroups, onOpen = viewModel::openGuide)
             }
         }
@@ -176,10 +202,11 @@ private fun LearnRoot(app: AppViewModel) {
 
 /** Look Again on the Learn home. The whole round happens here: read the post, answer, see why, next. */
 @Composable
-private fun PracticeRoundCard(viewModel: LearnViewModel) {
+private fun PracticeRoundCard(viewModel: LearnViewModel, answers: BringIntoViewRequester) {
     val practice = viewModel.practice
     val picked = (practice.phase as? PracticeViewModel.Phase.Revealed)?.picked
-    var showingDefinitions by remember { mutableStateOf(false) }
+    val showingDefinitions = viewModel.showsDefinitions
+    val toggleDefinitions = { viewModel.showsDefinitions = !showingDefinitions }
 
     Column(
         Modifier
@@ -190,15 +217,29 @@ private fun PracticeRoundCard(viewModel: LearnViewModel) {
             .animateContentSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        val title = @Composable { modifier: Modifier ->
             Text(
                 "Look Again",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f).semantics { heading() },
+                modifier = modifier.semantics { heading() },
             )
+        }
+        val progress = @Composable {
             if (practice.isInProgress) {
                 Text(practice.progressText, style = MaterialTheme.typography.bodyMedium, color = colors.secondaryText, modifier = Modifier.clearAndSetSemantics { })
+            }
+        }
+        // At the largest text sizes the progress goes under the title.
+        if (isLargeText()) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                title(Modifier)
+                progress()
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                title(Modifier.weight(1f))
+                progress()
             }
         }
 
@@ -216,9 +257,12 @@ private fun PracticeRoundCard(viewModel: LearnViewModel) {
                     )
                     Row(
                         Modifier
-                            .clickable(onClickLabel = if (showingDefinitions) "Hide" else "Show") { showingDefinitions = !showingDefinitions }
+                            .clickable(role = Role.Button, onClickLabel = if (showingDefinitions) "Hide" else "Show", onClick = toggleDefinitions)
                             .padding(vertical = 6.dp)
-                            .semantics { stateDescription = if (showingDefinitions) "Expanded" else "Collapsed" },
+                            .semantics {
+                                stateDescription = if (showingDefinitions) "Expanded" else "Collapsed"
+                                if (showingDefinitions) collapse { toggleDefinitions(); true } else expand { toggleDefinitions(); true }
+                            },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text("What the answers mean", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
@@ -241,15 +285,18 @@ private fun PracticeRoundCard(viewModel: LearnViewModel) {
                 PracticePostCard(shown, showsHotspots = picked != null)
             }
 
-            PracticeAnswerButtons(picked, question.answer, onSelect = practice::select)
+            // Brought into view after each answer, so the result and Next Post show without scrolling.
+            Column(Modifier.bringIntoViewRequester(answers), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                PracticeAnswerButtons(picked, question.answer, onSelect = practice::select)
 
-            if (picked != null) {
-                PracticeFeedback(question, picked, practice.answerCount)
-                PrimaryButton(
-                    if (practice.isLastQuestion) "See Results" else "Next Post",
-                    onClick = practice::next,
-                    trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
-                )
+                if (picked != null) {
+                    PracticeFeedback(question, picked, practice.answerCount)
+                    PrimaryButton(
+                        if (practice.isLastQuestion) "See Results" else "Next Post",
+                        onClick = practice::next,
+                        trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
+                    )
+                }
             }
         }
     }
@@ -260,6 +307,7 @@ private fun PracticeRoundCard(viewModel: LearnViewModel) {
 private fun PracticePostCard(question: PracticeQuestion, showsHotspots: Boolean) {
     var zoomed by remember { mutableStateOf(false) }
     val image = question.imageRes
+    val large = isLargeText()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -268,32 +316,43 @@ private fun PracticePostCard(question: PracticeQuestion, showsHotspots: Boolean)
                 contentDescription = "Post by ${question.author}, ${spokenTime(question.posted)}. ${sentence(question.caption)}"
             },
         ) {
-            Monogram(question.author, 36.dp)
+            // Grows with the text, up to a point.
+            Monogram(question.author, (36.dp * LocalDensity.current.fontScale).coerceAtMost(52.dp))
             Column {
-                Text(question.author, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    "@${question.handle} · ${question.posted}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.secondaryText,
-                    maxLines = 1,
-                    overflow = TextOverflow.MiddleEllipsis,
-                )
+                Text(question.author, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = if (large) 2 else 1, overflow = TextOverflow.Ellipsis)
+                // Handle and time, as the Feed shows them. The handle never wraps (a broken handle reads as a different account).
+                if (large) {
+                    Text("@${question.handle}", style = MaterialTheme.typography.bodySmall, color = colors.secondaryText, maxLines = 1, overflow = TextOverflow.MiddleEllipsis)
+                    Text(question.posted, style = MaterialTheme.typography.bodySmall, color = colors.secondaryText)
+                } else {
+                    Text(
+                        "@${question.handle} · ${question.posted}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.secondaryText,
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
+                    )
+                }
             }
         }
         Text(question.caption, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.clearAndSetSemantics { })
 
         if (image != null) {
+            val shape = RoundedCornerShape(Metrics.photoRadius)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 440.dp)
-                        .clip(RoundedCornerShape(Metrics.photoRadius))
-                        .clickable(onClickLabel = "Open the photo full screen to zoom in") { zoomed = true }
-                        .semantics { contentDescription = "Photo: ${question.spokenImageDescription}" },
-                ) {
-                    Image(painterResource(image), contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth())
-                    if (showsHotspots) HotspotOverlay(question.hotspots)
+                // Tall enough to see detail, short enough to leave the answers in view.
+                Box(Modifier.fillMaxWidth().heightIn(max = 440.dp), contentAlignment = Alignment.Center) {
+                    FittedPhoto(
+                        image,
+                        Modifier
+                            .clip(shape)
+                            .border(0.5.dp, colors.separator, shape)
+                            .clickable(onClickLabel = "Open the photo full screen to zoom in") { zoomed = true }
+                            .semantics { contentDescription = "Photo: ${question.spokenImageDescription}" },
+                    ) {
+                        // The photo's label covers it; the marks aren't read separately (as on iOS).
+                        if (showsHotspots) HotspotOverlay(question.hotspots, describe = false)
+                    }
                 }
                 question.credit?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = colors.secondaryText) }
             }
@@ -325,9 +384,33 @@ private fun PracticePostCard(question: PracticeQuestion, showsHotspots: Boolean)
     }
 }
 
-/** Clue areas marked on a practice photo after answering. Real clues use the highlight mark; decoys are dashed and neutral. */
+/**
+ * A bundled photo drawn at its own aspect ratio, so the box is exactly the
+ * image and 0–1 hotspot coordinates land on the right pixels.
+ */
 @Composable
-private fun HotspotOverlay(hotspots: List<PracticeHotspot>) {
+private fun FittedPhoto(image: Int, modifier: Modifier, overlay: @Composable () -> Unit) {
+    val painter = painterResource(image)
+    val ratio = painter.intrinsicSize.takeIf { it.isSpecified && it.width > 0f && it.height > 0f }?.let { it.width / it.height }
+    Box(if (ratio != null) Modifier.aspectRatio(ratio).then(modifier) else modifier.fillMaxWidth()) {
+        Image(
+            painter,
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = if (ratio != null) Modifier.fillMaxSize() else Modifier.fillMaxWidth(),
+        )
+        overlay()
+    }
+}
+
+/**
+ * Clue areas marked on a practice photo after answering. Real clues use the
+ * highlight mark; decoys are dashed and neutral. `describe` gives each mark
+ * its own TalkBack label (the full-screen viewer); otherwise the photo's
+ * label covers them.
+ */
+@Composable
+private fun HotspotOverlay(hotspots: List<PracticeHotspot>, describe: Boolean) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         hotspots.filter { it.isInsideImage }.forEach { spot ->
             val color = if (spot.isDecoy) Color.White.copy(alpha = 0.9f) else Palette.HotspotStroke
@@ -347,7 +430,10 @@ private fun HotspotOverlay(hotspots: List<PracticeHotspot>) {
                             ),
                         )
                     }
-                    .semantics { contentDescription = if (spot.isDecoy) "Normal detail: ${spot.label}" else "Highlighted area: ${spot.label}" },
+                    .then(
+                        if (describe) Modifier.semantics { contentDescription = if (spot.isDecoy) "Normal detail: ${spot.label}" else "Highlighted area: ${spot.label}" }
+                        else Modifier,
+                    ),
             ) {
                 Text(
                     spot.label,
@@ -359,7 +445,8 @@ private fun HotspotOverlay(hotspots: List<PracticeHotspot>) {
                         .padding(4.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(if (spot.isDecoy) Color.Black.copy(alpha = 0.6f) else Palette.HotspotLabel)
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                        .clearAndSetSemantics { },
                 )
             }
         }
@@ -382,26 +469,35 @@ private fun PracticePhotoViewer(image: Int, description: String, credit: String?
             offsetY = 0f
         }
     }
+    val scope = rememberCoroutineScope()
+    // Double-tap and the TalkBack zoom actions ease to the new scale; back at 1 the photo recentres.
+    fun setScale(value: Float) {
+        if (value == 1f) {
+            offsetX = 0f
+            offsetY = 0f
+        }
+        scope.launch { animate(scale, value, animationSpec = tween(250)) { current, _ -> scale = current } }
+    }
     Dialog(onDismissRequest = onDone, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Box(Modifier.fillMaxSize().background(Color.Black)) {
-            Box(
+            FittedPhoto(
+                image,
                 Modifier
                     .align(Alignment.Center)
                     .graphicsLayer { scaleX = scale; scaleY = scale; translationX = offsetX; translationY = offsetY }
                     .transformable(transform)
                     .pointerInput(Unit) {
-                        detectTapGestures(onDoubleTap = {
-                            scale = if (scale > 1f) 1f else 2.5f
-                            if (scale == 1f) {
-                                offsetX = 0f
-                                offsetY = 0f
-                            }
-                        })
+                        detectTapGestures(onDoubleTap = { setScale(if (scale > 1f) 1f else 2.5f) })
                     }
-                    .semantics { contentDescription = "Photo: $description" },
+                    .semantics {
+                        contentDescription = "Photo: $description"
+                        customActions = listOf(
+                            CustomAccessibilityAction("Zoom in") { setScale(minOf(scale * 2, 5f)); true },
+                            CustomAccessibilityAction("Zoom out") { setScale(maxOf(scale / 2, 1f)); true },
+                        )
+                    },
             ) {
-                Image(painterResource(image), contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth())
-                if (hotspots.isNotEmpty()) HotspotOverlay(hotspots)
+                if (hotspots.isNotEmpty()) HotspotOverlay(hotspots, describe = true)
             }
             TextButton(onClick = onDone, modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)) {
                 Text("Done", color = Color.White, fontWeight = FontWeight.SemiBold)
@@ -422,7 +518,7 @@ private fun PracticePhotoViewer(image: Int, description: String, credit: String?
 private fun PracticeAnswerButtons(picked: PracticeAnswer?, answer: PracticeAnswer, onSelect: (PracticeAnswer) -> Unit) {
     val tint = MaterialTheme.colorScheme.primary
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        PracticeAnswer.entries.chunked(2).forEach { row ->
+        PracticeAnswer.entries.chunked(if (isLargeText()) 1 else 2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { choice ->
                     val correct = picked != null && choice == answer
@@ -435,10 +531,13 @@ private fun PracticeAnswerButtons(picked: PracticeAnswer?, answer: PracticeAnswe
                             .clip(RoundedCornerShape(Metrics.fieldRadius))
                             .background(if (correct) tint.copy(alpha = 0.12f) else colors.fill)
                             .border(2.dp, if (correct) tint else Color.Transparent, RoundedCornerShape(Metrics.fieldRadius))
-                            .clickable(enabled = picked == null, role = Role.Button, onClickLabel = choice.definition) { onSelect(choice) }
+                            // Once revealed these are a record of the answer, not controls, so
+                            // they aren't read as disabled buttons.
+                            .then(if (picked == null) Modifier.clickable(role = Role.Button) { onSelect(choice) } else Modifier)
                             .padding(horizontal = 12.dp)
                             .semantics {
-                                contentDescription = choice.label
+                                // The definition is the hint while choosing.
+                                contentDescription = if (picked == null) "${choice.label}. ${choice.definition}" else choice.label
                                 stateDescription = when {
                                     picked == null -> ""
                                     choice == picked && choice == answer -> "Your answer, correct"
@@ -457,6 +556,7 @@ private fun PracticeAnswerButtons(picked: PracticeAnswer?, answer: PracticeAnswe
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = if (faded) colors.secondaryText else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.clearAndSetSemantics { },
                         )
                     }
                 }
@@ -469,6 +569,14 @@ private fun PracticeAnswerButtons(picked: PracticeAnswer?, answer: PracticeAnswe
 @Composable
 private fun PracticeFeedback(question: PracticeQuestion, picked: PracticeAnswer, answerCount: Int, live: Boolean = true) {
     val correct = picked == question.answer
+    val headline = remember { FocusRequester() }
+    LaunchedEffect(answerCount) {
+        // Land TalkBack on the result instead of a locked answer button. Not in
+        // the review sheet, where it starts at the post.
+        if (!live) return@LaunchedEffect
+        delay(300)
+        runCatching { headline.requestFocus() }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             MascotReaction(correct, trigger = answerCount, animates = live)
@@ -476,10 +584,10 @@ private fun PracticeFeedback(question: PracticeQuestion, picked: PracticeAnswer,
                 if (correct) "Yes, it's ${question.answer.phrase}." else "Not quite. It's ${question.answer.phrase}.",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.semantics {
-                    heading()
-                    if (live) liveRegion = LiveRegionMode.Polite
-                },
+                modifier = Modifier
+                    .focusRequester(headline)
+                    .focusable()
+                    .semantics { heading() },
             )
         }
         Column(
@@ -526,24 +634,30 @@ private fun Monogram(name: String, size: Dp) {
     }
 }
 
-/** One mark per question: filled for right, hollow for wrong, a wider bar for the current one. */
+/**
+ * One mark per question: filled for right, hollow for wrong, a wider bar for
+ * the current one. `hidden` keeps TalkBack off it where the score is already read.
+ */
 @Composable
-private fun RoundDots(practice: PracticeViewModel) {
+private fun RoundDots(practice: PracticeViewModel, hidden: Boolean = false) {
     val total = practice.round.size
     val finished = practice.phase == PracticeViewModel.Phase.Finished
     val tint = MaterialTheme.colorScheme.primary
+    // Grows with the text, like the rest of the card.
+    val size = 10.dp * LocalDensity.current.fontScale.coerceAtMost(2f)
     Row(
         Modifier.clearAndSetSemantics {
+            if (hidden) return@clearAndSetSemantics
             contentDescription = if (finished) "${practice.score} of $total right"
             else "Question ${minOf(practice.index + 1, total)} of $total, ${practice.score} right so far"
         },
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(size * 0.6f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         practice.round.indices.forEach { index ->
             val current = index == practice.index && index >= practice.picks.size && !finished
-            val shape = if (current) RoundedCornerShape(5.dp) else CircleShape
-            val base = Modifier.size(width = if (current) 20.dp else 10.dp, height = 10.dp)
+            val shape = if (current) RoundedCornerShape(size / 2) else CircleShape
+            val base = Modifier.size(width = if (current) size * 2 else size, height = size)
             when {
                 index < practice.picks.size && practice.picks[index] == practice.round[index].answer -> Box(base.background(tint, shape))
                 index < practice.picks.size -> Box(base.border(1.5.dp, colors.secondaryText, shape))
@@ -559,8 +673,9 @@ private fun RoundDots(practice: PracticeViewModel) {
 @Composable
 private fun PracticeSummary(viewModel: LearnViewModel) {
     val practice = viewModel.practice
-    var showAll by remember { mutableStateOf(false) }
-    var reviewing by remember { mutableStateOf<Pair<PracticeQuestion, PracticeAnswer>?>(null) }
+    // On the view model, so both survive a visit to the Clue Guide.
+    val showAll = viewModel.showsAllMisses
+    val reviewing = viewModel.reviewing
     val misses = practice.misses
     val preview = 3
 
@@ -577,9 +692,10 @@ private fun PracticeSummary(viewModel: LearnViewModel) {
                 }
             }
         }
-        RoundDots(practice)
+        // The score line above already says how many were right.
+        RoundDots(practice, hidden = true)
         Text(practice.summary, style = MaterialTheme.typography.bodyLarge)
-        PrimaryButton("Play Again", onClick = practice::restart, trailingIcon = Icons.Outlined.Refresh)
+        PrimaryButton("Play Again", onClick = viewModel::startPractice, trailingIcon = Icons.Outlined.Refresh)
 
         if (misses.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -590,7 +706,7 @@ private fun PracticeSummary(viewModel: LearnViewModel) {
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clickable(onClickLabel = "Show the post again with the answer") { reviewing = miss }
+                            .clickable(role = Role.Button, onClickLabel = "Show the post again with the answer") { viewModel.reviewing = miss }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -607,7 +723,7 @@ private fun PracticeSummary(viewModel: LearnViewModel) {
                     }
                 }
                 if (misses.size > preview + 1 && !showAll) {
-                    TextButton(onClick = { showAll = true }) { Text("Show all ${misses.size}") }
+                    TextButton(onClick = { viewModel.showsAllMisses = true }) { Text("Show all ${misses.size}") }
                 }
             }
             TextButton(onClick = viewModel::openGuideForMisses, modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp)) {
@@ -625,7 +741,7 @@ private fun PracticeSummary(viewModel: LearnViewModel) {
 
     reviewing?.let { (question, picked) ->
         ModalBottomSheet(
-            onDismissRequest = { reviewing = null },
+            onDismissRequest = { viewModel.reviewing = null },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = colors.card,
         ) {
@@ -638,8 +754,8 @@ private fun PracticeSummary(viewModel: LearnViewModel) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Take Another Look", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    TextButton(onClick = { reviewing = null }) { Text("Done", fontWeight = FontWeight.SemiBold) }
+                    Text("Take Another Look", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).semantics { heading() })
+                    TextButton(onClick = { viewModel.reviewing = null }) { Text("Done", fontWeight = FontWeight.SemiBold) }
                 }
                 PracticePostCard(question, showsHotspots = true)
                 PracticeAnswerButtons(picked, question.answer, onSelect = { })
@@ -722,3 +838,7 @@ internal fun sentence(caption: String): String {
     val trimmed = caption.trim()
     return if (trimmed.isEmpty() || trimmed.last() in ".!?") trimmed else "$trimmed."
 }
+
+/** The largest text sizes, where the card stacks what usually sits side by side (iOS's accessibility sizes). */
+@Composable
+private fun isLargeText(): Boolean = LocalDensity.current.fontScale >= 1.5f

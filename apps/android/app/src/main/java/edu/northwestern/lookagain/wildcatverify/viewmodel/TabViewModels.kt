@@ -14,6 +14,7 @@ import edu.northwestern.lookagain.wildcatverify.model.userMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.text.Normalizer
 
 /** My Checks: search, verdict scopes, delete and clear. */
 class HistoryViewModel(private val store: HistoryStore) {
@@ -26,13 +27,13 @@ class HistoryViewModel(private val store: HistoryStore) {
 
     val visibleCases: List<VerificationCase>
         get() {
-            val query = searchQuery.trim()
+            val query = searchQuery.trim().folded()
             return store.cases.filter { item ->
                 scope.matches(item) && (
                     query.isEmpty() ||
-                        item.authorHandle.contains(query, ignoreCase = true) ||
-                        item.title.contains(query, ignoreCase = true) ||
-                        item.caption.contains(query, ignoreCase = true)
+                        item.authorHandle.folded().contains(query) ||
+                        item.title.folded().contains(query) ||
+                        item.caption.folded().contains(query)
                     )
             }
         }
@@ -50,6 +51,13 @@ class HistoryViewModel(private val store: HistoryStore) {
         path = emptyList()
         searchQuery = ""
         scope = VerdictFilter.ALL
+    }
+
+    private companion object {
+        val MARKS = Regex("\\p{Mn}+")
+
+        /** Case- and accent-insensitive form for search, like iOS's `localizedStandardContains`: "Café" → "cafe". */
+        fun String.folded(): String = Normalizer.normalize(this, Normalizer.Form.NFD).replace(MARKS, "").lowercase()
     }
 }
 
@@ -126,13 +134,16 @@ class ShareViewModel(
         private set
     var analyzingImage by mutableStateOf<Bitmap?>(null)
         private set
+    /** Where a shared photo is kept in memory, so the share screen can drop it when it closes. */
+    var uploadUrl: String? = null
+        private set
 
     suspend fun check(input: ShareInput) {
         phase = Phase.Analyzing
         analyzingImage = null
         try {
             val item = when (input) {
-                is ShareInput.Image -> pipeline.checkImage(input.data) { analyzingImage = it }
+                is ShareInput.Image -> pipeline.checkImage(input.data, onStored = { uploadUrl = it }) { analyzingImage = it }
                 is ShareInput.Link -> pipeline.checkPost(input.link) { analyzingImage = it }
             }
             phase = Phase.Result(item)
