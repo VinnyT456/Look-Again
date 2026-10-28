@@ -120,7 +120,7 @@ fun BrandTopBar(
         navigationIcon = { Box(Modifier.padding(start = 16.dp, end = 4.dp)) { LogoTile() } },
         actions = {
             actions()
-            GlassCircleButton(Icons.AutoMirrored.Outlined.HelpOutline, "About WildcatVerify", onShowAbout, Modifier.padding(end = 16.dp))
+            GlassCircleButton(Icons.AutoMirrored.Outlined.HelpOutline, "About Look Again", onShowAbout, Modifier.padding(end = 16.dp))
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = colors.groupedBackground,

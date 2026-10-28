@@ -1,8 +1,8 @@
-# WildcatVerify Privacy Policy (Android)
+# Look Again Privacy Policy (Android)
 
 Last updated October 19, 2026.
 
-WildcatVerify is built so your photos and checks stay on your device.
+Look Again is built so your photos and checks stay on your device.
 
 ## Photos you choose
 
@@ -10,26 +10,26 @@ Android's photo picker gives the app only the photo you pick, never the rest of 
 
 ## Items you share
 
-When you use Share → WildcatVerify in another app, only what you shared reaches the app. It is checked in memory the same way and discarded when you tap Done.
+When you use Share → Look Again in another app, only what you shared reaches the app. It is checked in memory the same way and discarded when you tap Done.
 
 ## Labels
 
-- **The label tab** is off unless you start it. Each time, Android asks you to approve screen sharing; on Android 14 and later you can share only the Bluesky app. Screen frames are kept in memory, replaced as you scroll, and never uploaded or saved. Android shows a sharing indicator and WildcatVerify shows a notification while it runs.
+- **The label tab** is off unless you start it. Each time, Android asks you to approve screen sharing; on Android 14 and later you can share only the Bluesky app. Screen frames are kept in memory, replaced as you scroll, and never uploaded or saved. Android shows a sharing indicator and Look Again shows a notification while it runs.
 - **Auto-Label** (sideload builds only) is off unless you turn it on in Android's Accessibility settings. It looks only at the Bluesky app and at Chrome while bsky.app is open, reads where photos are on screen, and takes a screenshot to read those photos' pixels, all in memory on your device.
 
 ## Your Bluesky account
 
-Signing in is optional and only used to show your Following feed. You sign in on Bluesky's own page, so WildcatVerify never sees your password. It keeps only the sign-in token, bound to a key made on this device and encrypted with a key stored in Android's Keystore, and only ever reads your timeline. Signing out or Erase All Data deletes it.
+Signing in is optional and only used to show your Following feed. You sign in on Bluesky's own page, so Look Again never sees your password. It keeps only the sign-in token, bound to a key made on this device and encrypted with a key stored in Android's Keystore, and only ever reads your timeline. Signing out or Erase All Data deletes it.
 
 ## The Feed and copied links
 
-With Check Posts Automatically on (Settings → Feed), each Feed post's image is analyzed on your device as it appears; those verdicts stay in memory and aren't added to My Checks unless you open the post. Automatic checks pause in Battery Saver and on mobile data or Data Saver.
+With Check Posts Automatically on (Settings → Feed), each Feed post's image is analyzed on your device as it appears; those verdicts stay in memory and aren't added to My Checks unless you open the post. Automatic checks pause in Battery Saver and Data Saver.
 
 When you open the app, it asks Android only whether the clipboard looks like a link, from its description, without reading it. The link is read only when you tap Paste.
 
 ## Bluesky links and the Feed
 
-To check a post or load the Feed, the app asks Bluesky directly. Bluesky sees your IP address like any website would. WildcatVerify runs no server and keeps no copy of the link. See Bluesky's privacy policy: https://bsky.social/about/support/privacy-policy
+To check a post or load the Feed, the app asks Bluesky directly. Bluesky sees your IP address like any website would. Look Again runs no server and keeps no copy of the link. See Bluesky's privacy policy: https://bsky.social/about/support/privacy-policy
 
 ## My Checks
 
@@ -63,11 +63,11 @@ Delete one check with a swipe, clear My Checks, or use Settings → Erase All Da
 | Bluesky sign-in token (if you sign in) | App storage on your device, encrypted with an Android Keystore key | Until you sign out or erase data |
 | Settings, best score, hidden accounts | App settings on your device | Until you change them or erase data |
 | Clipboard contents | Read only when you tap Paste | Not kept; only a Bluesky link is used |
-| Anything on a server | Nowhere | WildcatVerify has no server |
+| Anything on a server | Nowhere | Look Again has no server |
 
 ## Children
 
-WildcatVerify does not knowingly collect information from anyone, including children under 13.
+Look Again does not knowingly collect information from anyone, including children under 13.
 
 ## Changes
 

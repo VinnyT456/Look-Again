@@ -17,7 +17,7 @@ struct CreditsView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
-                Text("WildcatVerify adds a linear probe and the patch heatmap on top, and runs everything on this iPhone.")
+                Text("Look Again adds a linear probe and the patch heatmap on top, and runs everything on this iPhone.")
                     .foregroundStyle(.secondary)
             } header: {
                 Text("Detection model")

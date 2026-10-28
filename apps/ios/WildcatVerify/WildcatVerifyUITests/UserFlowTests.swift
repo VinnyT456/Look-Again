@@ -49,7 +49,7 @@ final class UserFlowTests: XCTestCase {
 
     func testOpensOnCheckWithAllTabs() {
         launch()
-        XCTAssertTrue(app.staticTexts["WildcatVerify"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Look Again"].waitForExistence(timeout: 5))
         for name in ["Feed", "Learn", "Check", "My Checks", "Settings"] {
             XCTAssertTrue(tab(name).exists, "Missing tab \(name)")
         }
@@ -153,6 +153,7 @@ final class UserFlowTests: XCTestCase {
         // Live network: either posts arrive or the retry screen shows. Never stuck.
         let loaded = app.staticTexts["TRENDING ON BLUESKY"].waitForExistence(timeout: 15)
             || app.staticTexts["Trending on Bluesky"].exists
+            || app.staticTexts["See your own feed"].exists
             || app.staticTexts["Couldn't Load the Feed"].exists
         XCTAssertTrue(loaded, "Feed should show posts or an error")
     }
@@ -189,6 +190,9 @@ final class UserFlowTests: XCTestCase {
         launch()
         selectTab("Settings")
         let hidden = app.buttons["hiddenAccountsRow"]
+        // The Bluesky Account section sits above it now.
+        XCTAssertTrue(hidden.waitForExistence(timeout: 5) || { app.swipeUp(); return hidden.waitForExistence(timeout: 3) }())
+        for _ in 0..<4 where !hidden.isHittable { app.swipeUp() }
         XCTAssertTrue(waitUntilHittable(hidden))
         hidden.tap()
         XCTAssertTrue(app.navigationBars["Hidden Accounts"].waitForExistence(timeout: 5))
@@ -266,7 +270,7 @@ final class UserFlowTests: XCTestCase {
 
     func testAboutSheetShowsPrivacyPolicy() {
         launch()
-        let about = app.buttons["About WildcatVerify"]
+        let about = app.buttons["About Look Again"]
         XCTAssertTrue(about.waitForExistence(timeout: 5))
         about.tap()
 
@@ -286,7 +290,7 @@ final class UserFlowTests: XCTestCase {
         launch()
         for name in ["Learn", "My Checks", "Check"] {
             tab(name).tap()
-            let about = app.buttons["About WildcatVerify"]
+            let about = app.buttons["About Look Again"]
             XCTAssertTrue(about.waitForExistence(timeout: 5), "No About on \(name)")
         }
     }

@@ -13,7 +13,7 @@ struct BrandToolbar: ViewModifier {
             .toolbar {
                 LogoToolbarItem()
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("About WildcatVerify", systemImage: "questionmark.circle", action: onShowAbout)
+                    Button("About Look Again", systemImage: "questionmark.circle", action: onShowAbout)
                 }
             }
     }

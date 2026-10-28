@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">WildcatVerify</string>
-    <string name="share_label">WildcatVerify</string>
-    <string name="auto_label_service_label">WildcatVerify Auto-Label</string>
+    <string name="app_name">Look Again</string>
+    <string name="share_label">Look Again</string>
+    <string name="auto_label_service_label">Look Again Auto-Label</string>
     <string name="auto_label_service_summary">Labels photos in Bluesky as likely real or likely AI.</string>
-    <string name="auto_label_service_description">While you scroll the Bluesky app (or bsky.app in Chrome), WildcatVerify finds the photos on screen, checks them on this device, and pins a small Real or AI label to each one. It reads only where photos are on screen and the pixels inside them, only in Bluesky and in Chrome while bsky.app is open. Nothing is uploaded or saved, and nothing is typed or tapped for you. Tap a label to see the full result.</string>
+    <string name="auto_label_service_description">While you scroll the Bluesky app (or bsky.app in Chrome), Look Again finds the photos on screen, checks them on this device, and pins a small Real or AI label to each one. It reads only where photos are on screen and the pixels inside them, only in Bluesky and in Chrome while bsky.app is open. Nothing is uploaded or saved, and nothing is typed or tapped for you. Tap a label to see the full result.</string>
 </resources>

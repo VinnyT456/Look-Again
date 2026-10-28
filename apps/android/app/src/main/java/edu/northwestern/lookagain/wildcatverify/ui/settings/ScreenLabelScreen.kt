@@ -107,7 +107,7 @@ fun ScreenLabelScreen(app: AppViewModel, onBack: () -> Unit) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Labels right in the Bluesky app", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text(
-                            "A small WildcatVerify tab sits at the edge of the screen. Scroll Bluesky as usual; when you stop, photos get a Real or AI label, checked on this device.",
+                            "A small Look Again tab sits at the edge of the screen. Scroll Bluesky as usual; when you stop, photos get a Real or AI label, checked on this device.",
                             color = colors.secondaryText,
                         )
                     }
@@ -176,7 +176,7 @@ fun ScreenLabelScreen(app: AppViewModel, onBack: () -> Unit) {
             onDismissRequest = { explainingOverlay = false },
             title = { Text("Allow the tab over other apps") },
             text = {
-                Text("To show its tab and labels on top of Bluesky, WildcatVerify needs “Display over other apps”. On the next screen, turn it on for WildcatVerify, then come back and tap Start again.")
+                Text("To show its tab and labels on top of Bluesky, Look Again needs “Display over other apps”. On the next screen, turn it on for Look Again, then come back and tap Start again.")
             },
             confirmButton = {
                 TextButton(onClick = {

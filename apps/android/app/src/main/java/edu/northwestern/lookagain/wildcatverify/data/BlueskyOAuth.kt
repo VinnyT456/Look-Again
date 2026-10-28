@@ -23,7 +23,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * WildcatVerify's identity as an AT Protocol OAuth client, shared with the iOS
+ * Look Again's identity as an AT Protocol OAuth client, shared with the iOS
  * app. The client ID is the public address of `oauth-client-metadata.json`
  * (GitHub Pages, from the repository's `docs/` folder); the redirect scheme is
  * that host reversed, as the AT Protocol requires for native apps.
@@ -315,7 +315,7 @@ class BlueskyIdentity(private val http: HttpSender) {
 /**
  * The AT Protocol OAuth flow for a native app: discovery, a pushed
  * authorization request (PAR) with PKCE and DPoP, the code exchange, and
- * refresh. Nothing goes through a WildcatVerify server; there isn't one.
+ * refresh. Nothing goes through a Look Again server; there isn't one.
  */
 class BlueskyOAuthClient(
     private val http: HttpSender = UrlConnectionHttpClient,

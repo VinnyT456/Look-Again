@@ -229,7 +229,7 @@ class BlueskyFeedService(
         }
     }
 
-    /** The fields WildcatVerify reads from `app.bsky.feed.getFeed`. */
+    /** The fields Look Again reads from `app.bsky.feed.getFeed`. */
     @Serializable
     internal data class FeedResponse(val feed: List<Item> = emptyList(), val cursor: String? = null) {
         @Serializable data class Item(val post: Post)

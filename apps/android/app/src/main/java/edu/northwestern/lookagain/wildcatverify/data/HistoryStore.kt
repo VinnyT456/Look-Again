@@ -139,7 +139,7 @@ class HistoryStore(
         try {
             cases = persistence.save(cases, images)
         } catch (e: Exception) {
-            Log.w("WildcatVerify", "Couldn't save My Checks", e)
+            Log.w("Look Again", "Couldn't save My Checks", e)
         }
     }
 }

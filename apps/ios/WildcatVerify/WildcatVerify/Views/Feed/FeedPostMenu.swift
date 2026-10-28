@@ -21,7 +21,7 @@ struct FeedPostMenu: View {
                 openURL(post.postURL)
             }
             if let support = AppLinks.support {
-                Button("Report to WildcatVerify", systemImage: "envelope") {
+                Button("Report to Look Again", systemImage: "envelope") {
                     openURL(support)
                 }
             }

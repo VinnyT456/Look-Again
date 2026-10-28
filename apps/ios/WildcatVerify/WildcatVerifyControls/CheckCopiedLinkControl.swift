@@ -11,6 +11,6 @@ struct CheckCopiedLinkControl: ControlWidget {
             }
         }
         .displayName("Check Copied Link")
-        .description("Checks the Bluesky post link you copied. iOS asks before WildcatVerify reads the clipboard.")
+        .description("Checks the Bluesky post link you copied. iOS asks before Look Again reads the clipboard.")
     }
 }

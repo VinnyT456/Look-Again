@@ -4,7 +4,7 @@ import Foundation
 /// without the network. Only used from the `.serialized` network suite.
 final class StubURLProtocol: URLProtocol {
     enum Reply {
-        case response(status: Int, body: Data)
+        case response(status: Int, body: Data, headers: [String: String] = [:])
         case failure(URLError.Code)
     }
 
@@ -30,8 +30,8 @@ final class StubURLProtocol: URLProtocol {
     override func startLoading() {
         if let url = request.url { Self.requestedURLs.append(url) }
         switch Self.reply(request) {
-        case let .response(status, body):
-            let response = HTTPURLResponse(url: request.url ?? URL(fileURLWithPath: "/"), statusCode: status, httpVersion: nil, headerFields: nil)
+        case let .response(status, body, headers):
+            let response = HTTPURLResponse(url: request.url ?? URL(fileURLWithPath: "/"), statusCode: status, httpVersion: nil, headerFields: headers)
             if let response {
                 client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             }

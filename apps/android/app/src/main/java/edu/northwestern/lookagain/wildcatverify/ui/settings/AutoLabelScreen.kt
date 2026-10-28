@@ -110,7 +110,7 @@ fun AutoLabelScreen(app: AppViewModel, onBack: () -> Unit) {
             }
             item {
                 when {
-                    !AutoLabelService.isSupported -> Section(footer = "Auto-Label needs Android 11 or later. You can still share photos to WildcatVerify.") {
+                    !AutoLabelService.isSupported -> Section(footer = "Auto-Label needs Android 11 or later. You can still share photos to Look Again.") {
                         ValueRow("Status", "Not available")
                     }
                     !enabled -> Section(footer = "Android asks you to turn it on in Settings → Accessibility. You can turn it off there any time.") {
@@ -149,7 +149,7 @@ fun AutoLabelScreen(app: AppViewModel, onBack: () -> Unit) {
             }
             item {
                 Section(header = "Check a single photo", footer = "Works in any app, with or without Auto-Label.") {
-                    BulletRow("Tap Share on a post or photo and choose WildcatVerify.", Icons.Outlined.Share)
+                    BulletRow("Tap Share on a post or photo and choose Look Again.", Icons.Outlined.Share)
                 }
             }
             item { Box(Modifier.navigationBarsPadding().padding(bottom = 24.dp)) }
@@ -163,9 +163,9 @@ fun AutoLabelScreen(app: AppViewModel, onBack: () -> Unit) {
             title = { Text("Turn on Auto-Label?") },
             text = {
                 Text(
-                    "WildcatVerify uses Android's Accessibility service to find photos on screen in the Bluesky app and in Chrome on bsky.app, and to read the pixels of those photos so it can label them. " +
+                    "Look Again uses Android's Accessibility service to find photos on screen in the Bluesky app and in Chrome on bsky.app, and to read the pixels of those photos so it can label them. " +
                         "Photos are checked on this device and are not uploaded or saved. It doesn't read other apps, and it never taps or types for you.\n\n" +
-                        "On the next screen, turn on WildcatVerify Auto-Label.",
+                        "On the next screen, turn on Look Again Auto-Label.",
                 )
             },
             confirmButton = {

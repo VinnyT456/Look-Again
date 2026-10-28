@@ -5,6 +5,8 @@ struct FeedPostRow: View {
     let post: FeedPost
     /// The automatic check of the first image, when there is one.
     var verdict: FeedVerdict?
+    /// Set while automatic checks are paused, so the row says why.
+    var pause: AutoCheckPause?
 
     @ScaledMetric(relativeTo: .body) private var avatarSize = 36.0
 
@@ -68,7 +70,7 @@ struct FeedPostRow: View {
                 }
                 .accessibilityLabel(post.imageAlt.isEmpty ? "Post image" : post.imageAlt)
 
-            FeedVerdictLine(verdict: verdict)
+            FeedVerdictLine(verdict: verdict, pause: pause)
         }
         .padding(.vertical, 6)
         .contentShape(.rect)

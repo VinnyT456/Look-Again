@@ -2,7 +2,7 @@ import AuthenticationServices
 import SwiftUI
 
 /// "Sign In with Bluesky": opens Bluesky's own sign-in page (no password is
-/// typed into WildcatVerify) and comes back signed in.
+/// typed into Look Again) and comes back signed in.
 struct BlueskySignInButton: View {
     /// For accounts hosted outside Bluesky; nil uses Bluesky's server.
     var handle: String?

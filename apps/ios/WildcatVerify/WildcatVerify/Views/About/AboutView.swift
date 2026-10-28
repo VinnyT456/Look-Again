@@ -10,7 +10,7 @@ struct AboutView: View {
                     HStack(spacing: 16) {
                         LogoTile(scale: 2)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("WildcatVerify")
+                            Text("Look Again")
                                 .font(.title2)
                                 .bold()
                             Text("Version \(Bundle.main.shortVersion)")

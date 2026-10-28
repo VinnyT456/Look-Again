@@ -70,7 +70,7 @@ data class ClueGroup(
                     Clue("Replies and quotes", "People who were there, or who found the original, often say so in the replies.", ClueIcon.REPLIES),
                     Clue("Date and place", "A real photo from another year or another city is still misleading. Watermarks and credits often give it away.", ClueIcon.CALENDAR),
                     Clue("Other angles", "Big events get photographed by many people. If only one picture exists, wait before sharing it.", ClueIcon.CAMERA),
-                    Clue("Alt text and credentials", "Some posters describe how a picture was made in its alt text, and some files carry Content Credentials. WildcatVerify shows them when it finds them.", ClueIcon.ALT_TEXT),
+                    Clue("Alt text and credentials", "Some posters describe how a picture was made in its alt text, and some files carry Content Credentials. Look Again shows them when it finds them.", ClueIcon.ALT_TEXT),
                 ),
             ),
         )

@@ -48,6 +48,8 @@ class AppViewModel(private val container: AppContainer) {
     var settingsPath by mutableStateOf<List<SettingsRoute>>(emptyList())
 
     val settings: SettingsStore = container.settings
+    /** Why the Feed's automatic checks are paused right now (Battery Saver or Data Saver), or null. */
+    val autoCheckPausedReason: String? get() = if (settings.autoCheckFeed) container.conditions.pauseReason else null
     val account = container.account
     private val persistence = container.persistence
     val history = HistoryStore(container.images, if (settings.keepHistory) persistence else null)

@@ -62,8 +62,8 @@ fun WaysToCheckScreen(app: AppViewModel, onDone: (() -> Unit)?, onBack: (() -> U
                     LogoTile(54.dp)
                     Text("Check a post in one or two taps", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
-                WayRow(1, "Hold the photo, tap Share", "In Bluesky, Chrome, Photos or Messages, press and hold any image, tap Share, then WildcatVerify.")
-                WayRow(2, "Copy the link, open WildcatVerify", "In Bluesky, tap Share on a post, then Copy Link. Open WildcatVerify and tap Paste.")
+                WayRow(1, "Hold the photo, tap Share", "In Bluesky, Chrome, Photos or Messages, press and hold any image, tap Share, then Look Again.")
+                WayRow(2, "Copy the link, open Look Again", "In Bluesky, tap Share on a post, then Copy Link. Open Look Again and tap Paste.")
                 WayRow(3, "Scroll the Feed tab", "Posts in the Feed are checked as they appear, so the verdict is waiting under each one.")
                 WayRow(4, "Turn on the label tab", "Labels photos right in the Bluesky app as you scroll. Start it in Settings → Label Tab in Bluesky.")
                 Text("Photos are checked on this device and never uploaded.", style = MaterialTheme.typography.bodySmall, color = colors.secondaryText)

@@ -177,6 +177,23 @@ access.
 Share → **Copy iCloud Link**, and paste the link into `AppLinks.checkThisPostShortcut`. Set Up
 Siri then shows an **Add "Check This Post" Shortcut** button above the manual steps.
 
+## Sign in with Bluesky (optional, off until published)
+
+`Account/` holds the AT Protocol OAuth client for native apps: handle/DID resolution, PAR with
+PKCE (S256), DPoP (ES256, per-session key, nonce retry), token refresh (one at a time; refresh
+tokens are single-use), and a Keychain-backed `BlueskyAccount`. It feeds the Feed tab's
+**Following** timeline (`TimelineFeedService`, `app.bsky.feed.getTimeline` through the user's own
+server with `atproto-proxy`). Tokens stay in the Keychain on this device; a fresh install
+discards any leftover sign-in (`discardLeftoverSignIn`).
+
+Bluesky rejects sign-ins (`invalid_client_metadata`) until the client file is public:
+1. Push the repo and enable GitHub Pages (Settings → Pages → `main`, `/docs`).
+2. Check `https://vinnyt456.github.io/Look-Again/oauth-client-metadata.json` loads.
+3. Set `BlueskyOAuthConfig.isSignInAvailable = true` and rebuild.
+
+If the Pages address differs, change `clientID`, `callbackScheme` (the host reversed) and the
+matching fields in `docs/oauth-client-metadata.json`; a test checks they agree.
+
 ## Fewer taps
 
 - **Copied link offer**: on open, `CheckViewModel.refreshCopiedLinkOffer()` asks iOS whether the
@@ -187,7 +204,7 @@ Siri then shows an **Add "Check This Post" Shortcut** button above the manual st
   sit behind "Why This Verdict?".
 - **Feed auto-check** (`FeedAutoChecker`, Settings → Feed, on by default): classifies each post's
   thumbnail as it scrolls in, one at a time, and shows a verdict badge. Pauses in Low Power Mode
-  and on expensive/constrained networks (`NetworkConditions`). Opening a post runs the full check.
+  and Low Data Mode (`NetworkConditions`); the Feed shows a banner saying why. Cellular alone doesn't pause it, since the Feed has already downloaded each thumbnail. When a pause ends, posts on screen are checked without scrolling (`FeedAutoChecker.resume()`). Opening a post runs the full check.
 - **Check with WildcatVerify** (`WildcatVerifyAction`, `com.apple.ui-services`): an action in the
   share menu's action list, so press-and-hold → Share on any image in Bluesky, Safari, Photos or
   Messages checks it. Same code as the share extension.

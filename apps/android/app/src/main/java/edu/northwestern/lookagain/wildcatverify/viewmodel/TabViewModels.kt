@@ -109,7 +109,7 @@ class CheckResultsViewModel(val item: VerificationCase, private val images: Imag
     }
 }
 
-/** What another app shared with WildcatVerify, reduced to something checkable. */
+/** What another app shared with Look Again, reduced to something checkable. */
 sealed interface ShareInput {
     /** Raw image bytes (a photo or screenshot). */
     class Image(val data: ByteArray) : ShareInput

@@ -54,7 +54,7 @@ struct ResultsView: View {
                     Section {
                         Button("Adjust the Checked Area", systemImage: "crop", action: onAdjustArea)
                     } footer: {
-                        Text("WildcatVerify found the photo in your screenshot by itself. If it picked the wrong area, box it yourself.")
+                        Text("Look Again found the photo in your screenshot by itself. If it picked the wrong area, box it yourself.")
                     }
                 }
 

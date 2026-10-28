@@ -51,7 +51,7 @@ struct CheckSnippetView: View {
             }
 
             Button(intent: OpenCheckIntent(caseID: item.id)) {
-                Label("Open in WildcatVerify", systemImage: "arrow.up.forward.app")
+                Label("Open in Look Again", systemImage: "arrow.up.forward.app")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)

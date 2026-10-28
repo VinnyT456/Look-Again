@@ -42,7 +42,7 @@ class PhotoLabeler(private val context: Context, private val scope: CoroutineSco
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.w("WildcatVerify", "Couldn't label a photo", e)
+                Log.w("Look Again", "Couldn't label a photo", e)
             } finally {
                 inFlight.remove(hash)
             }

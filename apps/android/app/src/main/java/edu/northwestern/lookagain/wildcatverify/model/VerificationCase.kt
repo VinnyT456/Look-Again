@@ -92,7 +92,7 @@ data class VerificationCase(
     /** Plain-text summary used by the share sheet. */
     val shareText: String
         get() = buildList {
-            add("WildcatVerify${if (isDemo) " (demo result)" else ""}: ${verdict.label}, $confidencePercentage% confidence")
+            add("Look Again${if (isDemo) " (demo result)" else ""}: ${verdict.label}, $confidencePercentage% confidence")
             add(title)
             if (authorHandle.isNotEmpty()) add("Posted by @$authorHandle")
             add(plainSummary)

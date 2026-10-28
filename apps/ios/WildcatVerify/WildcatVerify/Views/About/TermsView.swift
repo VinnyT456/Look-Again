@@ -6,10 +6,10 @@ struct TermsView: View {
     var body: some View {
         List {
             Section {
-                Text("These terms cover your use of WildcatVerify. Last updated October 15, 2026. Apple's standard Licensed Application End User License Agreement also applies.")
+                Text("These terms cover your use of Look Again. Last updated October 15, 2026. Apple's standard Licensed Application End User License Agreement also applies.")
             }
 
-            Section("What WildcatVerify does") {
+            Section("What Look Again does") {
                 Text("It estimates whether a photo looks real, edited or AI-generated, using a detection model that runs on your iPhone. It's a tool to help you decide what to trust, not a final answer.")
             }
 
@@ -22,7 +22,7 @@ struct TermsView: View {
             }
 
             Section("Other people's content") {
-                Text("Posts and photos in the Feed and from links belong to their authors and are shown from Bluesky's public service. WildcatVerify doesn't own, endorse or check them in advance. You can hide posts and accounts or report them with ••• on any Feed post. WildcatVerify isn't affiliated with Bluesky.")
+                Text("Posts and photos in the Feed and from links belong to their authors and are shown from Bluesky's public service. Look Again doesn't own, endorse or check them in advance. You can hide posts and accounts or report them with ••• on any Feed post. Look Again isn't affiliated with Bluesky.")
             }
 
             Section("Your photos") {

@@ -6,7 +6,11 @@ import UIKit
 @Observable
 final class AppViewModel {
     /// The app's single instance, shared with App Intents (Siri and Shortcuts).
-    static let live = AppViewModel()
+    static let live: AppViewModel = {
+        let app = AppViewModel()
+        app.discardLeftoverSignIn()
+        return app
+    }()
 
     var selectedTab: AppTab = .check {
         didSet { if selectedTab == .history { history.markSeen() } }
@@ -54,8 +58,12 @@ final class AppViewModel {
         let network = NetworkConditions()
         self.network = network
         let autoCheck = FeedAutoChecker(classifier: classifier) {
-            settings.autoCheckFeed && !ProcessInfo.processInfo.isLowPowerModeEnabled && !network.isLimited
+            if !settings.autoCheckFeed { return .off }
+            if network.isLowPowerMode { return .lowPower }
+            if network.isLowDataMode { return .lowData }
+            return nil
         }
+        network.onChange = { [weak autoCheck] in autoCheck?.resume() }
         self.feed = FeedViewModel(
             service: feedService,
             following: TimelineFeedService(account: account),
@@ -142,6 +150,14 @@ final class AppViewModel {
     func showSiriSetup() {
         settingsPath = [.siriSetup]
         selectedTab = .settings
+    }
+
+    /// iOS can keep Keychain items after an app is deleted. On the first
+    /// launch of a fresh install (the welcome hasn't been seen), drop any
+    /// sign-in left behind by an earlier copy.
+    func discardLeftoverSignIn() {
+        guard !settings.welcomeSeen, account.isSignedIn else { return }
+        signOut()
     }
 
     func finishWelcome() {

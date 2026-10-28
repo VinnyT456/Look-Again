@@ -1,7 +1,7 @@
 import AppIntents
 import SwiftUI
 
-/// "Check the copied link with WildcatVerify": reads a Bluesky link from the
+/// "Check the copied link with Look Again": reads a Bluesky link from the
 /// clipboard (iOS asks first), checks the post's photo without opening the
 /// app, and answers with a card.
 struct CheckCopiedLinkIntent: AppIntent {

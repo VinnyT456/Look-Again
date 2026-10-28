@@ -1,14 +1,14 @@
 import AppIntents
 import UniformTypeIdentifiers
 
-/// "Check Image with WildcatVerify": the action in the "Check This Post"
+/// "Check Image with Look Again": the action in the "Check This Post"
 /// shortcut (Take Screenshot → Check Image). The image arrives in memory, so
 /// no Photos access is needed. The app opens so the user can box the photo.
 struct CheckImageIntent: AppIntent {
     static let title: LocalizedStringResource = "Check Image"
     static var description: IntentDescription {
         IntentDescription(
-            "Opens WildcatVerify so you can box the photo in an image, such as a screenshot of a Bluesky post, and check whether it's real or AI. The image stays on this iPhone.",
+            "Opens Look Again so you can box the photo in an image, such as a screenshot of a Bluesky post, and check whether it's real or AI. The image stays on this iPhone.",
             categoryName: "Checking"
         )
     }
@@ -23,7 +23,7 @@ struct CheckImageIntent: AppIntent {
     var image: IntentFile?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Check \(\.$image) with WildcatVerify")
+        Summary("Check \(\.$image) with Look Again")
     }
 
     @MainActor

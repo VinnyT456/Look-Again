@@ -122,7 +122,7 @@ class FeedAutoCheckTest {
         val checker = FeedAutoChecker({ error("should not run") }, this, isAllowed = { false })
         checker.request(post("1"))
         advanceUntilIdle()
-        assertTrue("Off, Battery Saver or a metered network", checker.verdicts.isEmpty())
+        assertTrue("Off, Battery Saver or Data Saver", checker.verdicts.isEmpty())
     }
 
     @Test fun unreachableImagesFailQuietly() = runTest(StandardTestDispatcher()) {

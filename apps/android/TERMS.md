@@ -1,10 +1,10 @@
-# WildcatVerify Terms of Use (Android)
+# Look Again Terms of Use (Android)
 
 Last updated October 15, 2026.
 
-These terms cover your use of WildcatVerify. Google Play's terms also apply when you get it from Google Play.
+These terms cover your use of Look Again. Google Play's terms also apply when you get it from Google Play.
 
-## What WildcatVerify does
+## What Look Again does
 
 It estimates whether a photo looks real, edited or AI-generated, using a detection model that runs on your device. It's a tool to help you decide what to trust, not a final answer.
 
@@ -18,7 +18,7 @@ Don't use a verdict to harass, shame or publicly accuse someone of faking a phot
 
 ## Other people's content
 
-Posts and photos in the Feed and from links belong to their authors and are shown from Bluesky's service. WildcatVerify doesn't own, endorse or check them in advance. You can hide posts and accounts or report them with ••• on any Feed post. WildcatVerify isn't affiliated with Bluesky.
+Posts and photos in the Feed and from links belong to their authors and are shown from Bluesky's service. Look Again doesn't own, endorse or check them in advance. You can hide posts and accounts or report them with ••• on any Feed post. Look Again isn't affiliated with Bluesky.
 
 ## Your photos
 

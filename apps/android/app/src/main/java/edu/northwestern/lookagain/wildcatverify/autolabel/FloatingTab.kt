@@ -48,7 +48,7 @@ class FloatingTab(private val context: Context, private val onTap: () -> Unit) {
             elevation = dp(6).toFloat()
             setPadding(dp(8), dp(10), dp(6), dp(10))
             addView(icon, FrameLayout.LayoutParams(dp(30), dp(30), Gravity.CENTER))
-            contentDescription = "WildcatVerify label tab. Double tap to pause labels."
+            contentDescription = "Look Again label tab. Double tap to pause labels."
             setOnClickListener { onTap() }
             setOnTouchListener(DragOrTap())
         }
@@ -64,7 +64,7 @@ class FloatingTab(private val context: Context, private val onTap: () -> Unit) {
         view?.apply {
             background = tabBackground(paused)
             alpha = if (paused) 0.6f else 1f
-            contentDescription = if (paused) "WildcatVerify label tab, paused. Double tap to resume labels." else "WildcatVerify label tab. Double tap to pause labels."
+            contentDescription = if (paused) "Look Again label tab, paused. Double tap to resume labels." else "Look Again label tab. Double tap to pause labels."
         }
     }
 

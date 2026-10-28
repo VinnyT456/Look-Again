@@ -62,7 +62,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
 
     /**
      * Check Feed posts automatically as they scroll into view. On by default;
-     * paused in Battery Saver and on metered or Data Saver connections.
+     * paused in Battery Saver and Data Saver.
      */
     var autoCheckFeed: Boolean
         get() = _autoCheckFeed

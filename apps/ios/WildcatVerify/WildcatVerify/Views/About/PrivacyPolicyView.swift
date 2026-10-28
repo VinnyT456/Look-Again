@@ -6,7 +6,7 @@ struct PrivacyPolicyView: View {
     var body: some View {
         List {
             Section {
-                Text("WildcatVerify is built so your photos and checks stay on your iPhone. Last updated October 15, 2026.")
+                Text("Look Again is built so your photos and checks stay on your iPhone. Last updated October 15, 2026.")
             }
 
             Section("Photos you choose") {
@@ -14,17 +14,17 @@ struct PrivacyPolicyView: View {
             }
 
             Section("Items you share") {
-                Text("When you use Share → WildcatVerify in another app, only what you shared reaches the app. It is checked in memory the same way and discarded when you tap Done.")
+                Text("When you use Share → Look Again in another app, only what you shared reaches the app. It is checked in memory the same way and discarded when you tap Done.")
             }
 
             Section("Siri and Shortcuts") {
                 Text("The Check Image action receives the screenshot your shortcut takes, in memory. The app never reads your photo library. Only the area you box is checked, on this iPhone, and the screenshot is discarded when you're done.")
-                Text("Visual Intelligence hands over the image you search with, in memory, only when you choose Check with WildcatVerify.")
+                Text("Visual Intelligence hands over the image you search with, in memory, only when you choose Check with Look Again.")
                 Text("“Check the copied link” reads your clipboard only when you ask, and iOS asks your permission first. Only a Bluesky post link is used; anything else on the clipboard is ignored.")
             }
 
             Section {
-                Text("To check a post, the app asks Bluesky's public API for that post's text and photo. The request goes straight from your iPhone to Bluesky, which sees your IP address like any website would. WildcatVerify runs no server and keeps no copy of the link.")
+                Text("To check a post, the app asks Bluesky's public API for that post's text and photo. The request goes straight from your iPhone to Bluesky, which sees your IP address like any website would. Look Again runs no server and keeps no copy of the link.")
                 if let url = AppLinks.blueskyPrivacy {
                     Link("Bluesky Privacy Policy", destination: url)
                 }
@@ -39,6 +39,10 @@ struct PrivacyPolicyView: View {
             Section("The Feed") {
                 Text("The Feed loads public image posts from Bluesky's What's Hot feed directly from Bluesky. No account is used. With Check Posts Automatically on, each post's image is analyzed on this iPhone as it appears; those verdicts stay in memory and aren't added to My Checks unless you open the post.")
                 Text("When you open the app, it asks iOS only whether the clipboard looks like a link, without reading it and without a paste prompt. The link is read only when you tap Paste.")
+            }
+
+            Section("Signing in with Bluesky (optional)") {
+                Text("You sign in on Bluesky's own page, so WildcatVerify never sees your password. A sign-in token and a device-only key are kept in this iPhone's Keychain and used only to read your Following timeline from your own Bluesky server. The app never posts, likes, follows or reads messages. Posts from your timeline are checked on this iPhone like Feed posts. Sign Out, Erase All Data or deleting the app removes the sign-in. WildcatVerify has no server that sees any of it.")
             }
 
             Section("Hidden accounts and settings") {

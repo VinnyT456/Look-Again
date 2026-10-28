@@ -20,17 +20,17 @@ struct WaysToCheckView: View {
                 WayRow(
                     number: 1,
                     title: "Hold the photo, tap Share",
-                    detail: "In Bluesky, Safari, Photos or Messages, press and hold any image, tap Share, then Check with WildcatVerify."
+                    detail: "In Bluesky, Safari, Photos or Messages, press and hold any image, tap Share, then Check with Look Again."
                 )
                 WayRow(
                     number: 2,
-                    title: "Copy the link, open WildcatVerify",
-                    detail: "In Bluesky, tap Share on a post, then Copy Link. Open WildcatVerify and tap Paste."
+                    title: "Copy the link, open Look Again",
+                    detail: "In Bluesky, tap Share on a post, then Copy Link. Open Look Again and tap Paste."
                 )
                 WayRow(
                     number: 3,
                     title: "Ask Siri",
-                    detail: "Say “Check the copied link with WildcatVerify,” or set up “Check This Post” in Settings → Siri & Shortcuts."
+                    detail: "Say “Check the copied link with Look Again,” or set up “Check This Post” in Settings → Siri & Shortcuts."
                 )
 
                 Text("Photos are checked on this iPhone and never uploaded.")

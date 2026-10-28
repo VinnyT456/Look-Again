@@ -87,7 +87,7 @@ class BadgeOverlay(
 
     private fun style(view: TextView, badge: Badge) {
         val (text, color, description) = when (badge) {
-            Badge.Checking -> Triple("◌ Checking…", 0xB3000000.toInt(), "WildcatVerify is checking this photo")
+            Badge.Checking -> Triple("◌ Checking…", 0xB3000000.toInt(), "Look Again is checking this photo")
             is Badge.Result -> {
                 val item = badge.item
                 val color = when (item.verdict) {
@@ -103,7 +103,7 @@ class BadgeOverlay(
                 Triple(
                     "$glyph ${item.verdict.shortLabel} ${item.confidencePercentage}%",
                     color,
-                    "WildcatVerify: ${item.verdict.label}, ${item.confidencePercentage} percent confidence. Double tap for details.",
+                    "Look Again: ${item.verdict.label}, ${item.confidencePercentage} percent confidence. Double tap for details.",
                 )
             }
         }

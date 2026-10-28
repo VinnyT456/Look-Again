@@ -3,8 +3,6 @@
 
     <!-- Bluesky's public API and image CDN. Photos are checked on device. -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Feed auto-checks pause on metered networks. -->
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Label tab: the tab and badges over Bluesky, and the screen-capture session behind them. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -46,7 +44,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Share → "WildcatVerify": like the iOS share extension. Checks one image or
+        <!-- Share → "Look Again": like the iOS share extension. Checks one image or
              Bluesky link in memory and shows the result; Done discards everything. -->
         <activity
             android:name=".share.ShareActivity"

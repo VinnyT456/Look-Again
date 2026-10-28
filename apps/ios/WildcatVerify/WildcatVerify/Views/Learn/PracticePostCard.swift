@@ -159,7 +159,7 @@ struct PracticePostCard: View {
             caption: "Look at this little guy",
             imageDescription: "The app's magnifier mascot.",
             imageName: "FaceCheckMagnifier",
-            credit: "Illustration: WildcatVerify",
+            credit: "Illustration: Look Again",
             hotspots: [
                 PracticeHotspot(x: 0.2, y: 0.15, width: 0.55, height: 0.5, label: "Lens"),
                 PracticeHotspot(x: 0.55, y: 0.65, width: 0.3, height: 0.25, label: "Normal: handle", isDecoy: true),

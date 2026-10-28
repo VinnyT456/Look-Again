@@ -170,7 +170,7 @@ class ScreenLabelService : Service() {
             main.post { onFrame(bitmap, signature) }
         }, Handler(thread.looper))
         display = projection.createVirtualDisplay(
-            "WildcatVerify labels",
+            "Look Again labels",
             captureWidth,
             captureHeight,
             (resources.displayMetrics.densityDpi * CAPTURE_SCALE).toInt(),

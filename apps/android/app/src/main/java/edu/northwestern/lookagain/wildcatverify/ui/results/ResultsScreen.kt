@@ -175,7 +175,7 @@ fun ResultsScreen(
             if (item.isDemo) {
                 item(key = "demo") {
                     Section {
-                        BulletRow("Demo result. This verdict isn't from the WildcatVerify detection model yet, so don't rely on it.", Icons.Outlined.Science)
+                        BulletRow("Demo result. This verdict isn't from the Look Again detection model yet, so don't rely on it.", Icons.Outlined.Science)
                     }
                 }
             }
@@ -321,7 +321,7 @@ private fun CredentialsSection(credentials: ContentCredentials) {
     }
     Section(
         header = "Content Credentials",
-        footer = "Read from the photo's file. WildcatVerify doesn't verify the signature yet, so treat this as a strong clue, not proof.",
+        footer = "Read from the photo's file. Look Again doesn't verify the signature yet, so treat this as a strong clue, not proof.",
     ) {
         val rows = buildList<@Composable () -> Unit> {
             if (text != null) add { BulletRow(text, Icons.Filled.Sell, color) }

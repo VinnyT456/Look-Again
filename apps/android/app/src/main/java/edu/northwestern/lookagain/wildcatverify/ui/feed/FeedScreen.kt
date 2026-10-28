@@ -157,7 +157,7 @@ private fun FeedList(app: AppViewModel, viewModel: FeedViewModel) {
     // Kept by the view model so each source's place survives switching sources, opening a post and changing tabs.
     val listState = viewModel.listState(viewModel.source)
     // Posts are checked as they scroll into view, top to bottom; ones that scroll away before their turn are skipped.
-    LaunchedEffect(listState, viewModel.visiblePosts, app.settings.autoCheckFeed) {
+    LaunchedEffect(listState, viewModel.visiblePosts, app.settings.autoCheckFeed, app.autoCheckPausedReason) {
         var onScreen = emptyList<FeedPost>()
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String } }
             .collect { keys ->
@@ -181,6 +181,16 @@ private fun FeedList(app: AppViewModel, viewModel: FeedViewModel) {
                     Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = SectionGutter).padding(top = 12.dp)) {
                         SectionHeader(if (viewModel.source == FeedSource.FOLLOWING) "Posts you follow" else "Trending on Bluesky")
                     }
+                }
+            }
+            app.autoCheckPausedReason?.let { reason ->
+                item(key = "paused") {
+                    Text(
+                        "Automatic checks are paused because $reason. Tap a post to check it.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.secondaryText,
+                        modifier = Modifier.widthIn(max = 720.dp).padding(start = 32.dp, end = 32.dp, top = 12.dp),
+                    )
                 }
             }
             if (viewModel.visiblePosts.isEmpty()) {
@@ -247,7 +257,7 @@ private fun FeedPostMenu(post: FeedPost, viewModel: FeedViewModel, modifier: Mod
                 onClick = { open = false; runCatching { uriHandler.openUri(post.postUrl) } },
             )
             DropdownMenuItem(
-                text = { Text("Report to WildcatVerify") },
+                text = { Text("Report to Look Again") },
                 leadingIcon = { Icon(Icons.Outlined.MailOutline, contentDescription = null) },
                 onClick = { open = false; runCatching { uriHandler.openUri(AppLinks.SUPPORT) } },
             )

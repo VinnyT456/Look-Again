@@ -1,6 +1,6 @@
 import Foundation
 
-/// What another app shared with WildcatVerify, reduced to something checkable.
+/// What another app shared with Look Again, reduced to something checkable.
 enum ShareInput: Equatable, Sendable {
     /// Raw image bytes (a photo or screenshot).
     case image(Data)

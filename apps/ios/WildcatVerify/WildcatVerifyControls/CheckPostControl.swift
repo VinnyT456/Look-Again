@@ -11,6 +11,6 @@ struct CheckPostControl: ControlWidget {
             }
         }
         .displayName("Check a Post")
-        .description("Opens WildcatVerify on Check.")
+        .description("Opens Look Again on Check.")
     }
 }

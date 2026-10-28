@@ -25,7 +25,7 @@ struct SettingsAccountSection: View {
         } header: {
             Text("Bluesky Account")
         } footer: {
-            Text("Optional. Signed in, the Feed shows the posts you follow, checked as you scroll. WildcatVerify only reads your timeline; it never posts, likes or follows. Your sign-in is kept in this iPhone's Keychain.")
+            Text("Optional. Signed in, the Feed shows the posts you follow, checked as you scroll. Look Again only reads your timeline; it never posts, likes or follows. Your sign-in is kept in this iPhone's Keychain.")
         }
         .alert("Your Bluesky Handle", isPresented: $isAskingForHandle) {
             TextField("name.example.com", text: $handle)

@@ -1,13 +1,13 @@
-# WildcatVerify Privacy Policy
+# Look Again Privacy Policy
 
 _Last updated: October 15, 2026_
 
-WildcatVerify helps you judge whether a photo is genuine, edited, or AI-generated.
+Look Again helps you judge whether a photo is genuine, edited, or AI-generated.
 It is built so that your photos and checks stay on your iPhone.
 
 ## What the app does with your data
 
-**Photos you choose.** When you pick a photo or screenshot, iOS gives WildcatVerify
+**Photos you choose.** When you pick a photo or screenshot, iOS gives Look Again
 only that one image; the app cannot see the rest of your library. The image is
 decoded and analyzed in memory on your iPhone. It is never uploaded, never written
 to disk, and is discarded when you delete the check, clear My Checks, or quit the
@@ -17,18 +17,18 @@ provenance record some cameras and AI tools attach: the app reads which app or d
 the photo and its edit history, and shows them with the result. Names, locations and other
 identity details in those credentials are ignored.
 
-**Items you share to WildcatVerify.** When you use Share → WildcatVerify (or
-Share → Check with WildcatVerify) in
+**Items you share to Look Again.** When you use Share → Look Again (or
+Share → Check with Look Again) in
 another app, only the photo, link or text you shared is passed to the app. It is
 checked in memory the same way, and discarded when you tap Done. Nothing from the
 share sheet is saved or uploaded.
 
 **Siri and Shortcuts.** The **Check Image** action receives the image your shortcut
-passes it (for example, from Take Screenshot) directly, in memory. WildcatVerify
+passes it (for example, from Take Screenshot) directly, in memory. Look Again
 never reads your photo library and needs no Photos permission for this. You box the
 photo, only that area is checked on your iPhone, and the screenshot itself is
 discarded. **Visual Intelligence** (on iPhones with Apple
-Intelligence) passes the screenshot or camera image you search with to WildcatVerify in
+Intelligence) passes the screenshot or camera image you search with to Look Again in
 memory; it is held only until you tap the result, then checked like any other screenshot.
 **Check the copied link** reads the clipboard only when you run it, and iOS
 asks your permission first. Only a Bluesky post link is used; anything else on the
@@ -39,7 +39,7 @@ address to Bluesky's public API (`public.api.bsky.app`) and downloads that post'
 text and photo. This request goes directly from your iPhone to Bluesky, the same as
 opening the post in a browser. Bluesky receives your device's IP address as part of
 any internet request and handles it under its own privacy policy:
-https://bsky.social/about/support/privacy-policy. WildcatVerify does not
+https://bsky.social/about/support/privacy-policy. Look Again does not
 operate a server and does not receive or keep the link.
 
 **My Checks.** By default your past checks are kept in memory for the current
@@ -58,7 +58,7 @@ your iPhone as it scrolls into view; the verdict is kept in memory only and isn'
 added to My Checks unless you open the post. You can turn this off under
 **Settings → Feed**.
 
-**Copied links.** When you open WildcatVerify, it asks iOS only *whether* the
+**Copied links.** When you open Look Again, it asks iOS only *whether* the
 clipboard holds something that looks like a link, which doesn't reveal the link
 and doesn't trigger a paste prompt. The link itself is read only when you tap
 **Paste**.
@@ -66,6 +66,20 @@ and doesn't trigger a paste prompt. The link itself is read only when you tap
 **Hidden accounts.** When you hide an account from the Feed, its Bluesky ID and handle
 are saved on this iPhone so it stays hidden. Bluesky and the account are not told. You can
 show it again under **Settings → Hidden Accounts**, and **Erase All Data** removes the list.
+
+**Signing in with Bluesky (optional).** If you sign in, you do it on Bluesky's own
+page, so WildcatVerify never sees your password. The app keeps a sign-in token and a
+device-only key in this iPhone's Keychain (not synced, not backed up to other devices) and
+uses them only to read your **Following** timeline (`app.bsky.feed.getTimeline`) directly from
+your own Bluesky server. It never posts, likes, follows, reads messages or changes your
+account. Bluesky currently offers no narrower "read only" permission, so the sign-in asks for
+Bluesky's general one, but the app only makes that single timeline request. Posts from your
+timeline are checked on your iPhone like Feed posts; the verdicts stay in memory unless you
+open a post. Bluesky handles your account under its own privacy policy, and WildcatVerify has
+no server that sees any of it. **Settings → Bluesky Account → Sign Out**, **Erase All Data**,
+and deleting the app (any leftover sign-in is discarded the first time a reinstalled copy
+opens) all remove it. The app's sign-in details are a public file hosted on GitHub Pages;
+Bluesky's servers read it, not your iPhone.
 
 **Settings.** Your preferences (Keep My Checks, haptics, heatmap, whether you closed the Siri tip,
 your best Look Again score, hidden accounts) are stored on this
@@ -77,7 +91,7 @@ All image analysis, including the AI-image detector, runs on your iPhone with Ap
 No photo, screenshot, link or result is sent to the developer or to any AI service.
 
 **Apple services.** If you use Siri or Shortcuts, Apple processes your voice request under
-Apple's own privacy policy. WildcatVerify only receives the image or link the shortcut passes.
+Apple's own privacy policy. Look Again only receives the image or link the shortcut passes.
 
 ## What is kept, and for how long
 
@@ -86,12 +100,13 @@ Apple's own privacy policy. WildcatVerify only receives the image or link the sh
 | Photos and screenshots you check | Memory on your iPhone | Until you delete the check or quit the app |
 | My Checks (if **Keep My Checks** is on) | App storage on your iPhone, not backed up | Until you turn it off, delete it, or erase data |
 | Settings, best score, hidden accounts | App settings on your iPhone | Until you change them or erase data |
+| Bluesky sign-in (optional) | Keychain on your iPhone, this device only | Until you sign out, erase data, or reinstall the app |
 | Clipboard contents | Read only when you run Check Copied Link | Not kept; only a Bluesky link is used |
-| Anything on a server | Nowhere | WildcatVerify has no server |
+| Anything on a server | Nowhere | Look Again has no server |
 
 ## Your choices and rights
 
-Everything WildcatVerify keeps is on your iPhone and under your control: delete one check
+Everything Look Again keeps is on your iPhone and under your control: delete one check
 with a swipe, clear My Checks, or use **Settings → Erase All Data**. Deleting the app removes
 everything. Because the developer receives no personal data, there is nothing held elsewhere
 to access, correct, export or delete; requests under laws such as the GDPR or CCPA can still be
@@ -107,7 +122,7 @@ sent to the contact below and will be answered.
 
 ## Children
 
-WildcatVerify does not knowingly collect information from anyone, including
+Look Again does not knowingly collect information from anyone, including
 children under 13.
 
 ## Changes

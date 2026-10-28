@@ -83,7 +83,7 @@ struct FeedAutoCheckTests {
 
     @Test func postsGetABadgeOneAtATime() async throws {
         let images = ImageRepository()
-        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { true }
+        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { nil }
         let first = post("1", images: images)
         let second = post("2", images: images)
         checker.request(first)
@@ -96,14 +96,64 @@ struct FeedAutoCheckTests {
 
     @Test func nothingRunsWhenNotAllowed() async throws {
         let images = ImageRepository()
-        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { false }
+        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { .lowPower }
         checker.request(post("1", images: images))
         try await Task.sleep(for: .milliseconds(100))
         #expect(checker.verdicts.isEmpty, "Off, Low Power Mode or a limited network")
     }
 
+    @Test func visiblePostsAreCheckedWhenAPauseEnds() async throws {
+        let images = ImageRepository()
+        var pause: AutoCheckPause? = .lowPower
+        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { pause }
+        let first = post("1", images: images)
+        let second = post("2", images: images)
+        checker.request(first)
+        checker.request(second)
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(checker.verdicts.isEmpty, "Paused, so nothing runs")
+        #expect(checker.pause == .lowPower)
+
+        pause = nil
+        checker.resume()
+        try await waitUntil { checker.verdicts.count == 2 && !checker.verdicts.values.contains(.checking) }
+        #expect(checker.verdicts[first.id] != nil && checker.verdicts[second.id] != nil, "No scrolling needed")
+    }
+
+    @Test func postsThatScrolledAwayAreNotCheckedLater() async throws {
+        let images = ImageRepository()
+        var pause: AutoCheckPause? = .lowData
+        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { pause }
+        let gone = post("1", images: images)
+        checker.request(gone)
+        checker.cancel(gone)
+        pause = nil
+        checker.resume()
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(checker.verdicts[gone.id] == nil)
+    }
+
+    @Test func failedChecksAreRetriedOnResume() async throws {
+        let images = ImageRepository()
+        let checker = FeedAutoChecker(classifier: StubClassifier(), images: images) { nil }
+        var broken = FeedFixtures.post("x")
+        broken.thumbURL = URL.inMemoryImage(UUID())
+        checker.request(broken)
+        try await waitUntil { checker.verdicts[broken.id] == .failed }
+        images.storeUpload(TestImages.solid(), for: broken.thumbURL)
+        checker.resume()
+        try await waitUntil { checker.verdicts[broken.id] != .failed && checker.verdicts[broken.id] != .checking }
+        #expect(checker.verdicts[broken.id] != .failed)
+    }
+
+    @Test func pauseReasonsExplainThemselves() {
+        #expect(AutoCheckPause.off.explanation == nil, "Off by choice needs no banner")
+        #expect(AutoCheckPause.lowPower.explanation?.contains("Low Power Mode") == true)
+        #expect(AutoCheckPause.lowData.explanation?.contains("Low Data Mode") == true)
+    }
+
     @Test func unreachableImagesFailQuietly() async throws {
-        let checker = FeedAutoChecker(classifier: StubClassifier(), images: ImageRepository()) { true }
+        let checker = FeedAutoChecker(classifier: StubClassifier(), images: ImageRepository()) { nil }
         var missing = FeedFixtures.post("x")
         missing.thumbURL = URL.inMemoryImage(UUID())
         checker.request(missing)
@@ -166,5 +216,59 @@ struct WelcomeAndScreenshotTests {
         app.pendingScreenshot = nil
         app.adjustLastScreenshot()
         #expect(app.pendingScreenshot?.image === screenshot)
+    }
+}
+
+@MainActor
+struct LeftoverSignInTests {
+    private func session() -> BlueskySession {
+        BlueskySession(
+            did: "did:plc:abc", handle: "alice.bsky.social",
+            pds: URL(string: "https://pds.example.com") ?? URL(fileURLWithPath: "/"), issuer: "https://bsky.social",
+            tokenEndpoint: URL(string: "https://bsky.social/oauth/token") ?? URL(fileURLWithPath: "/"),
+            accessToken: "a", refreshToken: "r", expiresAt: .now.addingTimeInterval(3600), dpopKey: DPoPSigner().rawKey
+        )
+    }
+
+    private func makeApp(welcomeSeen: Bool, keychain: KeychainStore) throws -> AppViewModel {
+        keychain.save(try JSONEncoder().encode(session()))
+        let settings = isolatedSettings()
+        settings.welcomeSeen = welcomeSeen
+        return AppViewModel(
+            settings: settings,
+            persistence: HistoryPersistence(directory: temporaryDirectory()),
+            feedService: StubFeed(),
+            bluesky: StubBluesky(result: .failure(.network)),
+            classifier: StubClassifier(),
+            account: BlueskyAccount(keychain: keychain)
+        )
+    }
+
+    @Test func aFreshInstallDropsASignInLeftByAnEarlierCopy() throws {
+        let keychain = KeychainStore(service: "WildcatVerifyTests-\(UUID().uuidString)", account: "session")
+        defer { keychain.delete() }
+        let app = try makeApp(welcomeSeen: false, keychain: keychain)
+        #expect(app.account.isSignedIn, "Loaded from the Keychain at launch")
+        app.discardLeftoverSignIn()
+        #expect(!app.account.isSignedIn)
+        #expect(keychain.load() == nil)
+    }
+
+    @Test func anEstablishedInstallKeepsItsSignIn() throws {
+        let keychain = KeychainStore(service: "WildcatVerifyTests-\(UUID().uuidString)", account: "session")
+        defer { keychain.delete() }
+        let app = try makeApp(welcomeSeen: true, keychain: keychain)
+        app.discardLeftoverSignIn()
+        #expect(app.account.isSignedIn)
+        #expect(keychain.load() != nil)
+    }
+
+    @Test func eraseAllDataSignsOut() throws {
+        let keychain = KeychainStore(service: "WildcatVerifyTests-\(UUID().uuidString)", account: "session")
+        defer { keychain.delete() }
+        let app = try makeApp(welcomeSeen: true, keychain: keychain)
+        app.eraseAllData()
+        #expect(!app.account.isSignedIn)
+        #expect(keychain.load() == nil)
     }
 }

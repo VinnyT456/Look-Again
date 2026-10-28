@@ -5,6 +5,6 @@ enum ShareError: LocalizedError, Equatable {
     case unsupported
 
     var errorDescription: String? {
-        "WildcatVerify can check photos, screenshots and Bluesky post links. Try sharing the image itself or the post's link."
+        "Look Again can check photos, screenshots and Bluesky post links. Try sharing the image itself or the post's link."
     }
 }

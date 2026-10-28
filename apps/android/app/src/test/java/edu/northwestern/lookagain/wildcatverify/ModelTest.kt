@@ -131,7 +131,7 @@ class VerificationCaseTest {
     }
 
     @Test fun shareTextMarksDemos() {
-        assertTrue(SampleData.lakefill.shareText.startsWith("WildcatVerify (demo result): Likely Real, 96% confidence"))
+        assertTrue(SampleData.lakefill.shareText.startsWith("Look Again (demo result): Likely Real, 96% confidence"))
         assertTrue(SampleData.lakefill.shareText.endsWith("An automated estimate, not proof."))
     }
 

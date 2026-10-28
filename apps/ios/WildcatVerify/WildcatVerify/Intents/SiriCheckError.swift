@@ -11,7 +11,7 @@ enum SiriCheckError: Error, CustomLocalizedStringResourceConvertible {
         case .noCopiedLink:
             "There's no Bluesky post link on your clipboard. In Bluesky, tap Share on a post, then Copy Link, and try again."
         case .unreadableImage:
-            "WildcatVerify couldn't read that image. Try taking the screenshot again."
+            "Look Again couldn't read that image. Try taking the screenshot again."
         case .failed(let message):
             "\(message)"
         }

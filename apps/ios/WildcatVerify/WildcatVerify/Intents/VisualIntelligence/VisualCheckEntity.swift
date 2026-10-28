@@ -3,8 +3,8 @@
 import AppIntents
 import UIKit
 
-/// What WildcatVerify offers in Visual Intelligence results: "Check with
-/// WildcatVerify", showing the image it would check.
+/// What Look Again offers in Visual Intelligence results: "Check with
+/// Look Again", showing the image it would check.
 @available(iOS 26.0, *)
 struct VisualCheckEntity: AppEntity {
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Image Check"
@@ -16,7 +16,7 @@ struct VisualCheckEntity: AppEntity {
 
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
-            title: "Check with WildcatVerify",
+            title: "Check with Look Again",
             subtitle: "Box the photo and see if it's real or AI",
             image: thumbnail.map { .init(data: $0) }
         )

@@ -132,7 +132,7 @@ private fun SettingsList(app: AppViewModel, push: (SettingsRoute) -> Unit, modif
         item {
             Section(
                 header = "Bluesky Account",
-                footer = "Optional. Signed in, the Feed shows the posts you follow, checked as you scroll. WildcatVerify only reads your timeline; it never posts, likes or follows. Your sign-in is kept encrypted on this device.",
+                footer = "Optional. Signed in, the Feed shows the posts you follow, checked as you scroll. Look Again only reads your timeline; it never posts, likes or follows. Your sign-in is kept encrypted on this device.",
             ) {
                 val handle = app.account.handle
                 if (handle != null) {
@@ -192,7 +192,7 @@ private fun SettingsList(app: AppViewModel, push: (SettingsRoute) -> Unit, modif
         item {
             Section(
                 header = "Feed",
-                footer = "Feed posts are checked on this device as they scroll into view. Paused in Battery Saver and on mobile data or Data Saver.",
+                footer = "Feed posts are checked on this device as they scroll into view. Paused in Battery Saver and Data Saver.",
             ) {
                 ToggleRow("Check Posts Automatically", Icons.Outlined.AutoFixHigh, settings.autoCheckFeed) { settings.autoCheckFeed = it }
                 RowDivider(IconRowInset)

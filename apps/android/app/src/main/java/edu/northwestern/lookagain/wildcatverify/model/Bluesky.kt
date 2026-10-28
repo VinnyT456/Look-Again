@@ -49,7 +49,7 @@ sealed class CheckException(message: String) : Exception(message) {
     data object NoImage : CheckException("That post doesn't have a photo to check.")
     data object Network : CheckException("Couldn't reach Bluesky. Check your connection and try again.")
     data object UnreadablePhoto : CheckException("We couldn't open that photo. Try a different image or screenshot.")
-    data object Unsupported : CheckException("WildcatVerify can check photos, screenshots and Bluesky post links. Try sharing the image itself or the post's link.")
+    data object Unsupported : CheckException("Look Again can check photos, screenshots and Bluesky post links. Try sharing the image itself or the post's link.")
 }
 
 /** User-facing copy for any failure. */

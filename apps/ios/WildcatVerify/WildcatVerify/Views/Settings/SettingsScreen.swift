@@ -9,7 +9,9 @@ struct SettingsScreen: View {
 
         NavigationStack(path: $app.settingsPath) {
             List {
-                SettingsAccountSection()
+                if BlueskyOAuthConfig.isSignInAvailable || app.account.isSignedIn {
+                    SettingsAccountSection()
+                }
                 SettingsSiriSection()
                 SettingsHistorySection()
                 SettingsPreferencesSection(settings: app.settings)

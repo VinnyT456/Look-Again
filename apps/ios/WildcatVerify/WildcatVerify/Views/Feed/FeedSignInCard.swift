@@ -18,7 +18,7 @@ struct FeedSignInCard: View {
                     .contentShape(.rect)
                     .padding(-12)
             }
-            Text("Sign in and the posts you follow are checked here as you scroll. WildcatVerify only reads your timeline.")
+            Text("Sign in and the posts you follow are checked here as you scroll. Look Again only reads your timeline.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

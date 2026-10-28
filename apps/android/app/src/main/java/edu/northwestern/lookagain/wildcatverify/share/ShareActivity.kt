@@ -52,7 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Share → WildcatVerify, like the iOS share extension. Accepts one image, a
+ * Share → Look Again, like the iOS share extension. Accepts one image, a
  * Bluesky post URL, or text containing one (the image wins), runs the same
  * pipeline as the app, and shows the same Results screen. Tapping Done discards
  * everything; nothing is written to disk or added to My Checks.
@@ -136,7 +136,7 @@ private fun ShareRoot(viewModel: ShareViewModel, onDone: () -> Unit) {
         containerColor = colors.groupedBackground,
         topBar = {
             TopAppBar(
-                title = { Text("WildcatVerify", fontWeight = FontWeight.SemiBold) },
+                title = { Text("Look Again", fontWeight = FontWeight.SemiBold) },
                 navigationIcon = { Box(Modifier.padding(start = 12.dp, end = 8.dp)) { LogoTile() } },
                 actions = { TextButton(onClick = onDone) { Text("Done", fontWeight = FontWeight.SemiBold) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.groupedBackground),

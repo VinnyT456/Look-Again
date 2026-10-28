@@ -7,9 +7,17 @@ struct FeedList: View {
 
     var body: some View {
         List {
-            if viewModel.source == .whatsHot, !app.account.isSignedIn, !app.settings.feedSignInDismissed {
+            if BlueskyOAuthConfig.isSignInAvailable, viewModel.source == .whatsHot, !app.account.isSignedIn, !app.settings.feedSignInDismissed {
                 Section {
                     FeedSignInCard { app.settings.feedSignInDismissed = true }
+                }
+            }
+            if let message = viewModel.autoCheck?.pause?.explanation {
+                Section {
+                    Label(message, systemImage: "pause.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("autoCheckPaused")
                 }
             }
             Section {
@@ -17,7 +25,7 @@ struct FeedList: View {
                     Button {
                         viewModel.open(post)
                     } label: {
-                        FeedPostRow(post: post, verdict: viewModel.verdict(for: post))
+                        FeedPostRow(post: post, verdict: viewModel.verdict(for: post), pause: viewModel.autoCheck?.pause)
                     }
                     .buttonStyle(.plain)
                     .overlay(alignment: .topTrailing) {

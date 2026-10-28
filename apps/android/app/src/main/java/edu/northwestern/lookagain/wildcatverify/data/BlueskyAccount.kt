@@ -91,7 +91,7 @@ class SessionVault(private val prefs: SharedPreferences) {
 
 /**
  * The optional Bluesky sign-in, through Bluesky's own sign-in page (OAuth),
- * so no password is ever typed into WildcatVerify. Only used to read the
+ * so no password is ever typed into Look Again. Only used to read the
  * user's Following timeline; requests go straight to Bluesky.
  */
 class BlueskyAccount(

@@ -115,7 +115,7 @@ class TfliteImageClassifier(private val interpreter: Interpreter) : ImageClassif
                 .setUseXNNPACK(true)
             TfliteImageClassifier(Interpreter(buffer, options))
         } catch (e: Throwable) {
-            Log.w("WildcatVerify", "Couldn't load the detector; using the demo classifier", e)
+            Log.w("Look Again", "Couldn't load the detector; using the demo classifier", e)
             null
         }
 

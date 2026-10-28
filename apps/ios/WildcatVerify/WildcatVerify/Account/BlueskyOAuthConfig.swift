@@ -7,6 +7,12 @@ import Foundation
 /// redirect scheme is that host reversed, as the AT Protocol requires for
 /// native apps.
 enum BlueskyOAuthConfig {
+    /// Turn on once `docs/oauth-client-metadata.json` is live at `clientID`
+    /// (GitHub Pages: Settings → Pages → deploy `main` from `/docs`). Until
+    /// then Bluesky rejects every sign-in with `invalid_client_metadata`, so
+    /// the sign-in card and Settings section stay hidden.
+    static let isSignInAvailable = false
+
     static let clientID = "https://vinnyt456.github.io/Look-Again/oauth-client-metadata.json"
     static let callbackScheme = "io.github.vinnyt456"
     static let redirectURI = "\(callbackScheme):/oauth/callback"

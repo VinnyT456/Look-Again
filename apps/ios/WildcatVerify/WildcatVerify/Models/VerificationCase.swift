@@ -42,7 +42,7 @@ struct VerificationCase: Identifiable, Hashable, Sendable, Codable {
     /// Plain-text summary used by the share sheet.
     var shareText: String {
         var lines = [
-            "WildcatVerify\(isDemo ? " (demo result)" : ""): \(verdict.label), \(confidencePercentage)% confidence",
+            "Look Again\(isDemo ? " (demo result)" : ""): \(verdict.label), \(confidencePercentage)% confidence",
             title,
         ]
         if !authorHandle.isEmpty { lines.append("Posted by @\(authorHandle)") }

@@ -5,7 +5,7 @@ import SwiftUI
 struct DemoNotice: View {
     var body: some View {
         Label {
-            Text("Demo result. This verdict isn't from the WildcatVerify detection model yet, so don't rely on it.")
+            Text("Demo result. This verdict isn't from the Look Again detection model yet, so don't rely on it.")
                 .font(.subheadline)
         } icon: {
             Image(systemName: "flask")

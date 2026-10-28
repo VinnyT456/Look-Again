@@ -4,6 +4,7 @@ import SwiftUI
 /// while it runs, or the plain tap-to-check prompt.
 struct FeedVerdictLine: View {
     let verdict: FeedVerdict?
+    var pause: AutoCheckPause?
 
     var body: some View {
         switch verdict {
@@ -30,8 +31,13 @@ struct FeedVerdictLine: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-        case .failed, nil:
-            Label("Check this post", systemImage: "checkmark.shield")
+        case .failed:
+            Label("Couldn't check. Tap to try again", systemImage: "arrow.clockwise")
+                .font(.subheadline)
+                .bold()
+                .foregroundStyle(.tint)
+        case nil:
+            Label(pause?.explanation == nil ? "Check this post" : "Tap to check", systemImage: "checkmark.shield")
                 .font(.subheadline)
                 .bold()
                 .foregroundStyle(.tint)

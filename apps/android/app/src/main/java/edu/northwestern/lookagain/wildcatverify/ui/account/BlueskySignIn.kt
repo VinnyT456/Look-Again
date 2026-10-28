@@ -46,7 +46,7 @@ private val AppViewModel.isSigningIn get() = account.state == BlueskyAccount.Sta
 
 /**
  * "Sign In with Bluesky": opens Bluesky's own sign-in page (no password is
- * typed into WildcatVerify) and comes back signed in.
+ * typed into Look Again) and comes back signed in.
  */
 @Composable
 fun BlueskySignInButton(app: AppViewModel, title: String = "Sign In with Bluesky", modifier: Modifier = Modifier) {
@@ -88,7 +88,7 @@ fun FeedSignInCard(app: AppViewModel, onDismiss: () -> Unit) {
                 }
             }
             Text(
-                "Sign in and the posts you follow are checked here as you scroll. WildcatVerify only reads your timeline.",
+                "Sign in and the posts you follow are checked here as you scroll. Look Again only reads your timeline.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.secondaryText,
             )

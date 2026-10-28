@@ -42,7 +42,7 @@ struct CredentialsSection: View {
         } header: {
             Text("Content Credentials")
         } footer: {
-            Text("Read from the photo's file. WildcatVerify doesn't verify the signature yet, so treat this as a strong clue, not proof.")
+            Text("Read from the photo's file. Look Again doesn't verify the signature yet, so treat this as a strong clue, not proof.")
         }
         .accessibilityElement(children: .contain)
     }

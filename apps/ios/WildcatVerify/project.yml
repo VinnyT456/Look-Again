@@ -31,7 +31,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: edu.northwestern.lookagain.WildcatVerify
         TARGETED_DEVICE_FAMILY: "1"
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: WildcatVerify
+        INFOPLIST_KEY_CFBundleDisplayName: "Look Again"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         # Only HTTPS (via URLSession) and CryptoKit hashing: exempt from export filings.
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
@@ -42,7 +42,7 @@ targets:
         ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS: YES
         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
         ENABLE_PREVIEWS: YES
-  # Share sheet: "WildcatVerify" in other apps' share menus. Runs the same
+  # Share sheet: "Look Again" in other apps' share menus. Runs the same
   # CheckPipeline and Results screen as the app, in memory only.
   WildcatVerifyShare:
     type: app-extension
@@ -62,7 +62,7 @@ targets:
     info:
       path: WildcatVerifyShare/Info.plist
       properties:
-        CFBundleDisplayName: WildcatVerify
+        CFBundleDisplayName: "Look Again"
         ITSAppUsesNonExemptEncryption: false
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
@@ -81,7 +81,7 @@ targets:
         ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS: YES
         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-  # "Check with WildcatVerify" in the share menu's action list (press and hold
+  # "Check with Look Again" in the share menu's action list (press and hold
   # an image in Bluesky, Safari, Photos or Messages → Share). Same code and
   # memory-only rules as the share extension; listed as an action, not an app.
   WildcatVerifyAction:
@@ -103,7 +103,7 @@ targets:
     info:
       path: WildcatVerifyAction/Info.plist
       properties:
-        CFBundleDisplayName: Check with WildcatVerify
+        CFBundleDisplayName: "Check with Look Again"
         ITSAppUsesNonExemptEncryption: false
         NSExtension:
           NSExtensionPointIdentifier: com.apple.ui-services
@@ -134,7 +134,7 @@ targets:
     info:
       path: WildcatVerifyControls/Info.plist
       properties:
-        CFBundleDisplayName: WildcatVerify
+        CFBundleDisplayName: "Look Again"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:

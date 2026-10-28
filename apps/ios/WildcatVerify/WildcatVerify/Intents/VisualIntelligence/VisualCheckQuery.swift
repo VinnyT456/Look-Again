@@ -6,7 +6,7 @@ import UIKit
 import VisualIntelligence
 
 /// Visual Intelligence (screenshot or camera → search) asks apps for results.
-/// WildcatVerify answers with one: check this image. The pixels stay in memory
+/// Look Again answers with one: check this image. The pixels stay in memory
 /// on this iPhone.
 @available(iOS 26.0, *)
 struct VisualCheckQuery: IntentValueQuery {

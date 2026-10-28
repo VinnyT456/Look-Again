@@ -286,7 +286,7 @@ sealed interface FeedVerdict {
 class FeedAutoChecker(
     private val classify: suspend (String) -> Pair<ClassificationResult, Boolean>,
     private val scope: CoroutineScope,
-    /** Whether checks may run right now (setting on, not Battery Saver, not a metered network). */
+    /** Whether checks may run right now (setting on, not Battery Saver or Data Saver). */
     private val isAllowed: () -> Boolean,
 ) {
     /** Post id → verdict. Read by the feed rows. */

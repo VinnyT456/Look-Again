@@ -164,12 +164,12 @@ private fun CheckHeader(onShowAbout: () -> Unit) {
         ) {
             LogoTile(Metrics.headerLogo)
             Text(
-                "WildcatVerify",
+                "Look Again",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f).semantics { heading() },
             )
-            GlassCircleButton(Icons.AutoMirrored.Outlined.HelpOutline, "About WildcatVerify", onShowAbout, tint = colors.secondaryText)
+            GlassCircleButton(Icons.AutoMirrored.Outlined.HelpOutline, "About Look Again", onShowAbout, tint = colors.secondaryText)
         }
         HorizontalDivider(thickness = 0.5.dp, color = colors.separator)
     }

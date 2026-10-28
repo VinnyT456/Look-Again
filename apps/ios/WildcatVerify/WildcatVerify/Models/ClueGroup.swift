@@ -60,7 +60,7 @@ struct ClueGroup: Identifiable, Hashable, Sendable {
                 Clue(title: "Replies and quotes", detail: "People who were there, or who found the original, often say so in the replies.", icon: "bubble.left.and.bubble.right"),
                 Clue(title: "Date and place", detail: "A real photo from another year or another city is still misleading. Watermarks and credits often give it away.", icon: "calendar"),
                 Clue(title: "Other angles", detail: "Big events get photographed by many people. If only one picture exists, wait before sharing it.", icon: "camera"),
-                Clue(title: "Alt text and credentials", detail: "Some posters describe how a picture was made in its alt text, and some files carry Content Credentials. WildcatVerify shows them when it finds them.", icon: "text.below.photo"),
+                Clue(title: "Alt text and credentials", detail: "Some posters describe how a picture was made in its alt text, and some files carry Content Credentials. Look Again shows them when it finds them.", icon: "text.below.photo"),
             ]
         ),
     ]

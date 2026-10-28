@@ -57,7 +57,7 @@ within 0.002. If the model fails to load, the labelled demo classifier is used.
 - **Feed ••• menu**: hide a post, hide an account (Settings → Hidden Accounts), report.
 - **Terms of Use** ([TERMS.md](TERMS.md)) and privacy updates ([PRIVACY.md](PRIVACY.md)).
 - **Feed auto-check**: posts are checked as they scroll into view; a verdict line (badge, %,
-  Details) waits under each one. Paused in Battery Saver and on metered networks or Data Saver
+  Details) waits under each one. Paused in Battery Saver and Data Saver (not on plain mobile data)
   (`DeviceConditions`); toggle in Settings → Feed.
 - **Copied-link offer** on the Check tab: when the clipboard probably holds a link, a card offers
   to check it. Only the clip's description is read until you tap (`ClipboardProbe`).
