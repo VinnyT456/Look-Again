@@ -78,7 +78,7 @@ timeline are checked on your iPhone like Feed posts; the verdicts stay in memory
 open a post. Bluesky handles your account under its own privacy policy, and WildcatVerify has
 no server that sees any of it. **Settings → Bluesky Account → Sign Out**, **Erase All Data**,
 and deleting the app (any leftover sign-in is discarded the first time a reinstalled copy
-opens) all remove it. The app's sign-in details are a public file hosted on GitHub Pages;
+opens) all remove it. The app's sign-in details are a public file hosted on Vercel;
 Bluesky's servers read it, not your iPhone.
 
 **Settings.** Your preferences (Keep My Checks, haptics, heatmap, whether you closed the Siri tip,

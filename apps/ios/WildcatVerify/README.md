@@ -187,11 +187,12 @@ server with `atproto-proxy`). Tokens stay in the Keychain on this device; a fres
 discards any leftover sign-in (`discardLeftoverSignIn`).
 
 Bluesky rejects sign-ins (`invalid_client_metadata`) until the client file is public:
-1. Push the repo and enable GitHub Pages (Settings → Pages → `main`, `/docs`).
-2. Check `https://vinnyt456.github.io/Look-Again/oauth-client-metadata.json` loads.
+1. Host `docs/` on Vercel (Root Directory `docs`); it is live at
+   `https://look-again-beta.vercel.app/`.
+2. Check `https://look-again-beta.vercel.app/oauth-client-metadata.json` loads with no login or redirect.
 3. Set `BlueskyOAuthConfig.isSignInAvailable = true` and rebuild.
 
-If the Pages address differs, change `clientID`, `callbackScheme` (the host reversed) and the
+If the address changes, change `clientID`, `callbackScheme` (the host reversed) and the
 matching fields in `docs/oauth-client-metadata.json`; a test checks they agree.
 
 ## Fewer taps

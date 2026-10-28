@@ -1,12 +1,12 @@
 {
-  "client_id": "https://vinnyt456.github.io/Look-Again/oauth-client-metadata.json",
+  "client_id": "https://look-again-beta.vercel.app/oauth-client-metadata.json",
   "client_name": "WildcatVerify",
-  "client_uri": "https://vinnyt456.github.io/Look-Again/",
+  "client_uri": "https://look-again-beta.vercel.app/",
   "application_type": "native",
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
   "scope": "atproto transition:generic",
-  "redirect_uris": ["io.github.vinnyt456:/oauth/callback"],
+  "redirect_uris": ["app.vercel.look-again-beta:/oauth/callback"],
   "token_endpoint_auth_method": "none",
   "dpop_bound_access_tokens": true
 }

@@ -388,7 +388,7 @@ extension NetworkTests {
         )
         let client = BlueskyOAuthClient(session: StubURLProtocol.session())
         func callback(_ query: String) throws -> URL {
-            try #require(URL(string: "io.github.vinnyt456:/oauth/callback?\(query)"))
+            try #require(URL(string: "\(BlueskyOAuthConfig.redirectURI)?\(query)"))
         }
 
         await #expect(throws: BlueskyAuthError.stateMismatch) {
